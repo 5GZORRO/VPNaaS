@@ -1,0 +1,7 @@
+==> cmd.sh <==
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+==> /etc/wireguard/wg0.conf <==
+PublicKey = 2UZRYH8FWPKLEB1gXH8ny+giUl/FABYDeyxOCJlT0T8=
+AllowedIPs = 10.200.200.2/32

@@ -50,7 +50,7 @@ paths:
   /connect_to_VPN:
     post:
       tags:
-      - "VPN"
+      - "Gateway"
       summary: "Add a connection to a foreign gateway"
       description: "This method establishes a new client connection using DIDs as the authentication mechanism"
       operationId: "addVPN"
@@ -76,7 +76,7 @@ paths:
   /disconnect_to_VPN:
     post:
       tags:
-      - "VPN"
+      - "Gateway"
       summary: "Delete a connection to a foreign gateway"
       description: "This method carries out the completion of the established safe tunnel"
       operationId: "disconnetVPN"
@@ -100,7 +100,6 @@ paths:
       #- petstore_auth:
         #- "write:pets"
         #- "read:pets"
-
 definitions:
   VPNInfo:
     type: "object"

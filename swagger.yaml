@@ -56,10 +56,8 @@ paths:
       operationId: "addVPN"
       consumes:
       - "application/json"
-      - "application/xml"
       produces:
       - "application/json"
-      - "application/xml"
       parameters:
       - name: "ip_address_server"
         description: "It is an address where VPN server is running"
@@ -84,17 +82,15 @@ paths:
       operationId: "disconnetVPN"
       produces:
       - "application/json"
-      - "application/xml"
       parameters:
       - name: "ip_address_server"
-        #in: "query"
         description: "It is an address where VPN server is running"
         required: true
         type: "string"
       - name: "port_server"
-	description: "Specific port where VPN server will be available"
-	required: true
-	type: "integer"
+        description: "Specific port where VPN server will be available"
+        required: true
+        type: "integer"
       responses:
         200:
           description: "Successful operation"

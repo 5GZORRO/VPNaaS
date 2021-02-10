@@ -34,13 +34,13 @@ paths:
       - "application/json"
       parameters:
       - name: "ip_address_server"
-        in: "path"
+        #in: "path"
         description: "It is an end-point where VPN server will be installed"
         required: true
         type: "string"
         #format: "int64"
       - name: "port_server"
-        in: "path"
+        #in: "path"
         description: "Specific port where VPN server will be available"
         required: true
         type: "integer"
@@ -56,7 +56,7 @@ paths:
       tags:
       - "VPN"
       summary: "Add a connection to a foreign gateway"
-      description: ""
+      description: "This method establishes a new client connection using DIDs as the authentication mechanism"
       operationId: "addVPN"
       consumes:
       - "application/json"
@@ -65,49 +65,47 @@ paths:
       - "application/json"
       - "application/xml"
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
+      - name: "ip_address_server"
+        description: "It is an address where VPN server is running"
         required: true
-        schema:
-          $ref: "#/definitions/Pet"
+        type: "string"
+      - name: "port_server"
+	description: "Specific port where VPN server will be available"
+	required: true
+	type: "integer"
+      - name: "did"
+	description: "Public identifier which will be utilised to gather client’s public key"
+	required: true
+	type: "string"
       responses:
         200:
-          description: "successful operation"
-        405:
-          description: "Invalid input"
+          description: "Successful operation"
+        400:
+          description: "Invalid status value"
 
   /disconnect_to_VPN:
     post:
       tags:
       - "VPN"
-      summary: "Finds Pets by status"
-      description: "Multiple status values can be provided with comma separated strings"
-      operationId: "findPetsByStatus"
+      summary: "Delete a connection to a foreign gateway"
+      description: "This method carries out the completion of the established safe tunnel"
+      operationId: "disconnetVPN"
       produces:
       - "application/json"
       - "application/xml"
       parameters:
-      - name: "status"
-        in: "query"
-        description: "Status values that need to be considered for filter"
+      - name: "ip_address_server"
+        #in: "query"
+        description: "It is an address where VPN server is running"
         required: true
-        type: "array"
-        items:
-          type: "string"
-          enum:
-          - "available"
-          - "pending"
-          - "sold"
-          default: "available"
-        collectionFormat: "multi"
+        type: "string"
+      - name: "port_server"
+	description: "Specific port where VPN server will be available"
+	required: true
+	type: "integer"
       responses:
         200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
+          description: "Successful operation"
         400:
           description: "Invalid status value"
       security:

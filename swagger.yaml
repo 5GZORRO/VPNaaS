@@ -96,10 +96,10 @@ paths:
           description: "Successful operation"
         400:
           description: "Invalid status value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
+      #security:
+      #- petstore_auth:
+        #- "write:pets"
+        #- "read:pets"
 
 definitions:
   VPNInfo:

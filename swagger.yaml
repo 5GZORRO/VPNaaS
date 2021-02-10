@@ -33,12 +33,12 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "petId"
+      - name: "ip_address_server"
         in: "path"
-        description: "ID of pet to update"
+        description: "It is an end-point where VPN server will be installed"
         required: true
-        type: "integer"
-        format: "int64"
+        type: "string"
+        #format: "int64"
       responses:
         200:
           description: "Successful operation"

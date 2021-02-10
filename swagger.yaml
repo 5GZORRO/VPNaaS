@@ -66,9 +66,9 @@ paths:
         required: true
         type: "string"
       - name: "port_server"
-	description: "Specific port where VPN server will be available"
-	required: true
-	type: "integer"
+        description: "Specific port where VPN server will be available"
+        required: true
+        type: "integer"
       responses:
         200:
           description: "Successful operation"

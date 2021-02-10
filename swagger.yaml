@@ -66,7 +66,7 @@ paths:
 
     put:
       tags:
-      - "pet"
+      - "VPN"
       summary: "Update an existing pet"
       description: ""
       operationId: "updatePet"
@@ -94,10 +94,10 @@ paths:
       - petstore_auth:
         - "write:pets"
         - "read:pets"
-  /pet/findByStatus:
-    get:
+  /disconnect_to_VPN:
+    post:
       tags:
-      - "pet"
+      - "VPN"
       summary: "Finds Pets by status"
       description: "Multiple status values can be provided with comma separated strings"
       operationId: "findPetsByStatus"
@@ -131,40 +131,6 @@ paths:
       - petstore_auth:
         - "write:pets"
         - "read:pets"
-  /pet/findByTags:
-    get:
-      tags:
-      - "pet"
-      summary: "Finds Pets by tags"
-      description: "Multiple tags can be provided with comma separated strings. Use\
-        \ tag1, tag2, tag3 for testing."
-      operationId: "findPetsByTags"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "tags"
-        in: "query"
-        description: "Tags to filter by"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid tag value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-      deprecated: true
 
 definitions:
   VPNInfo:

@@ -14,7 +14,7 @@ info:
 #host: "petstore.swagger.io"
 #basePath: "/v2"
 tags:
-- name: "VPN"
+- name: "Gateway"
   description: "Methods related with the Wireguard-based VPN management"
   externalDocs:
     description: "Find out more"
@@ -26,15 +26,24 @@ paths:
   /get_configuration:
     get:
       tags:
-      - "VPN"
+      - "Gateway"
       summary: "Gets the configuration of the VPN server"
-      description: ""
+      description: "This method allows downloading configuration options from server"
       operationId: "getConfig"
       produces:
       - "application/json"
+      parameter:
+      -name: "ip_address_server"
+	description: "It is an end-point where VPN server will be installed"
+	required: true
+	type: "string"
+      -name: "port_server"
+	description: "Specific port where VPN server will be available"
+	required: true
+	type: "integer"
       responses:
         200:
-          description: "successful operation"
+          description: "Successful operation"
           schema:
             $ref: "#/definitions/VPNInfo"
 

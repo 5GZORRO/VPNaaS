@@ -73,10 +73,10 @@ paths:
 	description: "Specific port where VPN server will be available"
 	required: true
 	type: "integer"
-      - name: "dd"
-	description: "Public identifier which will be utilised to gather client’s public key"
-	required: true
-	type: "string"
+      #- name: "dd"
+	#description: "Public identifier which will be utilised to gather client’s public key"
+	#required: true
+	#type: "string"
       responses:
         200:
           description: "Successful operation"

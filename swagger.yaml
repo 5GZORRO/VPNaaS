@@ -36,7 +36,7 @@ paths:
         200:
           description: "successful operation"
           schema:
-            $ref: "#/definitions/ApiResponse"
+            $ref: "#/definitions/VPNInfo"
       security:
       - petstore_auth:
         - "write:pets"
@@ -566,15 +566,15 @@ securityDefinitions:
       read:pets: "read your pets"
       write:pets: "modify pets in your account"
 definitions:
-  ApiResponse:
+  VPNInfo:
     type: "object"
     properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
+      id:
         type: "string"
-      message:
+        format: "DID"
+      public_key:
+        type: "string"
+      IP_range:
         type: "string"
   Category:
     type: "object"

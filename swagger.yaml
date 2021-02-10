@@ -32,8 +32,8 @@ paths:
       operationId: "getConfig"
       produces:
       - "application/json"
-      parameter:
-	- name: "ip_address_server"
+      parameters:
+      - name: "ip_address_server"
 	description: "It is an end-point where VPN server will be installed"
 	required: true
 	type: "string"

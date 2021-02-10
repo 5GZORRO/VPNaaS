@@ -33,11 +33,11 @@ paths:
       produces:
       - "application/json"
       parameter:
-      -name: "ip_address_server"
+      - name: "ip_address_server"
 	description: "It is an end-point where VPN server will be installed"
 	required: true
 	type: "string"
-      -name: "port_server"
+      - name: "port_server"
 	description: "Specific port where VPN server will be available"
 	required: true
 	type: "integer"

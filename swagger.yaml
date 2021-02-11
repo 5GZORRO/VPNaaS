@@ -84,7 +84,7 @@ paths:
       - "application/json"
       parameters:
       - name: "client_public_key"
-        description: "Public key of the client to be added, in Curve25519 format."
+        description: "Public key of the client to be removed, in Curve25519 format."
         required: true
         type: "string"
       responses:

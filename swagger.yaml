@@ -45,8 +45,7 @@ paths:
         200:
           description: "Successful operation."
           schema:
-            $ref: "#/definitions/VPNInfo"
- 
+            $ref: "#/definitions/VPNInfo" 
   /add_client:
     post:
       tags:
@@ -70,8 +69,7 @@ paths:
             $ref: "#/definitions/client_accepted"
         400:
           description: "Invalid status value."
- 
- /remove_client:
+  /remove_client:
     post:
       tags:
       - "Gateway"
@@ -92,7 +90,6 @@ paths:
           description: "Successful operation."
         400:
           description: "Invalid status value."
- 
   /connect_to_VPN:
     post:
       tags:
@@ -118,7 +115,6 @@ paths:
           description: "Successful operation"
         400:
           description: "Invalid status value"
-
   /disconnect_to_VPN:
     post:
       tags:

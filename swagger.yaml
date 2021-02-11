@@ -32,34 +32,80 @@ paths:
       operationId: "getConfig"
       produces:
       - "application/json"
-      parameters:
-      - name: "ip_address_server"
-        description: "It is an end-point where VPN server will be installed"
-        required: true
-        type: "string"
-      - name: "port_server"
-        description: "Specific port where VPN server will be available"
-        required: true
-        type: "integer"
+      #parameters:
+      #- name: "ip_address_server"
+      #  description: "It is an end-point where VPN server will be installed"
+      #  required: true
+      #  type: "string"
+      #- name: "port_server"
+      #  description: "Specific port where VPN server will be available"
+      #  required: true
+      #  type: "integer"
       responses:
         200:
-          description: "Successful operation"
+          description: "Successful operation."
           schema:
             $ref: "#/definitions/VPNInfo"
-
-  /connect_to_VPN:
+ 
+  /add_client:
     post:
       tags:
       - "Gateway"
-      summary: "Add a connection to a foreign gateway"
-      description: "This method establishes a new client connection using DIDs as the authentication mechanism"
-      operationId: "addVPN"
+      summary: "Add a new client to the server"
+      description: "This method adds a new client to the wireguard configuration, returning its defined VPN IP"
+      operationId: "addClient"
       consumes:
       - "application/json"
       produces:
       - "application/json"
       parameters:
-      - name: "ip_address_server"
+      - name: "client_public_key"
+        description: "Public key of the client to be added, in Curve25519 format."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful operation."
+          schema:
+            $ref: "#/definitions/client_accepted"
+        400:
+          description: "Invalid status value."
+ 
+ /remove_client:
+    post:
+      tags:
+      - "Gateway"
+      summary: "Remove a client from the server"
+      description: "This method removes an existing client from the wireguard configuration."
+      operationId: "addClient"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "client_public_key"
+        description: "Public key of the client to be added, in Curve25519 format."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful operation."
+        400:
+          description: "Invalid status value."
+ 
+  /connect_to_VPN:
+    post:
+      tags:
+      - "Gateway"
+      summary: "Add a connection to a foreign gateway"
+      description: "This method establishes a new client connection using DIDs as the authentication mechanism. It uses the add_client method as auxiliary operation."
+      operationId: "connectToVPN"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "client_ip"
         description: "It is an address where VPN server is running"
         required: true
         type: "string"
@@ -111,7 +157,13 @@ definitions:
         type: "string"
       IP_range:
         type: "string"
-  
+  client_accepted:
+    type:"object"
+    properties:
+      assigned_ip:
+        type: "string"
+      server_public_key:
+        type: "string"
 externalDocs:
   description: "Find out more about 5GZORRO"
   url: "http://5gzorro.eu"

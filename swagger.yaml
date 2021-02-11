@@ -75,7 +75,7 @@ paths:
       - "Gateway"
       summary: "Remove a client from the server"
       description: "This method removes an existing client from the wireguard configuration."
-      operationId: "addClient"
+      operationId: "removeClient"
       consumes:
       - "application/json"
       produces:

@@ -102,7 +102,7 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - name: "client_ip"
+      - name: "ip_address_server"
         description: "It is an address where VPN server is running"
         required: true
         type: "string"

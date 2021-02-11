@@ -146,7 +146,7 @@ definitions:
   VPNInfo:
     type: "object"
     properties:
-      id:
+      did:
         type: "string"
         format: "DID"
       public_key:

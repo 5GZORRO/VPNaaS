@@ -16,3 +16,7 @@ The inter-domain security establishment repo encompasses an adaptation of WireGu
 | armhf | arm32v7-latest |
 
 * More information on the configuration and deployment parameters can be found on [WireGuard Github](https://github.com/linuxserver/docker-wireguard)
+
+## Inter-domain REST API
+
+* The current methods and information are available [here](https://5gzorro.github.io/inter-secure-channel-setup/) 

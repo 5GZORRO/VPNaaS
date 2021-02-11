@@ -154,7 +154,7 @@ definitions:
       IP_range:
         type: "string"
   client_accepted:
-    type:"object"
+    type: "object"
     properties:
       assigned_ip:
         type: "string"

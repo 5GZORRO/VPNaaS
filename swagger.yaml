@@ -23,6 +23,31 @@ schemes:
 - "https"
 - "http"
 paths:
+  /launch:
+    post:
+      tags:
+      - "Gateway"
+      summary: "Launch Wireguard and install if not installed."
+      description: "This method configures the required dependencies to launch wireguard in the machine."
+      operationId: "addClient"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "ip_range"
+        description: "IP range to be used in the wg0 interface. E.g. 10.200.200.1/24"
+        required: true
+        type: "string"
+      - name: "net_interface"
+        description: "Network interface to be used to forward VPN traffic."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful operation."
+        400:
+          description: "Invalid status value."
   /get_configuration:
     get:
       tags:

@@ -91,7 +91,7 @@ class launch(Resource):
         os.system("sudo iptables -A INPUT -s %s -p tcp -m udp -m conntrack --ctstate NEW -j ACCEPT"%ip_range)
         os.system("sudo iptables -A FORWARD -i wg0 -o wg0 -m conntrack --ctstate NEW -j ACCEPT")
         os.system("sudo iptables -t nat -A POSTROUTING -o %s -j MASQUERADE"%net_interface)
-        os.system("sudo apt-get install iptables-persistent")
+        os.system("sudo apt-get install -y iptables-persistent")
         os.system("sudo systemctl enable netfilter-persistent")
         os.system("sudo netfilter-persistent save")
 	

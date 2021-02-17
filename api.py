@@ -1,227 +1,258 @@
-from flask import Flask, request, Response
+from flask import Flask, request
 from flask_restful import Resource, Api
 from gevent.pywsgi import WSGIServer
 import os
-import platform
 import json
-import time
 import requests
 
 app = Flask(__name__)
 api = Api(app)
 
-#Get own public key curve25519
-def get_public_key():
-    ##########LOGIC#########
-    file=open("public_key", mode="r")
-    public_key=file.read()
-    file.close()
 
+# Get own public key curve25519
+def get_public_key():
+    file = open("public_key", mode="r")
+    public_key = file.read()
+    file.close()
     return public_key
-    
-    
-#Get own private key curve25519
+
+
+# Get own private key curve25519
 def get_private_key():
-    ##########LOGIC#########
-    file=open("private_key", mode="r")
-    private_key=file.read()
+    file = open("private_key", mode="r")
+    private_key = file.read()
     file.close()
 
     return private_key
-    
-    
-#When acting as server, get next IP available for clients in wg0.conf
+
+
+# When acting as server, get next IP available for clients in wg0.conf
 def get_next_IP_available():
-    ip=""
+    ip = ""
     return ip
 
 
-#Returns the number, in order, of the gateway to be connected.
-#n in added in one per gateway connected to as a client.
+def liberate_free_ip(ip_vpn):
+    lib = ""
+
+
+# Returns the number, in order, of the gateway to be connected.
+# n in added in one per gateway connected to as a client.
 def get_n_gateway():
     file = open("n_gateway", mode="r")
     n_gateway = int(file.read())
     file.close()
     return n_gateway
 
+
 def set_n_gateway(n):
     file = open("n_gateway", mode="w")
     file.write(n)
     file.close()
 
-#Stores n_gate with the server ip and port to be consulted when deleting
-#the connection.
-def store_interface_server_association(n_gate,server_ip,server_port):
-    data={server_ip:{server_port:n_gate}}
-    #store data
-    return 0
 
-def get_interface_server_association(server_ip,server_port):
-    #n_gate = consultar server_ip,server_port
-    return n_gate
+# Stores n_gate with the server ip and port to be consulted when deleting
+# the connection.
+def store_interface_server_association(n_gate, server_ip, server_port):
+    file = open("interface_server_associations", mode="a")
+    file.write(str(n_gate) + ":" + str(server_ip) + ":" + str(server_port) + "\n")
+    file.close()
+
+
+# Get the n_gate associated with the requested ip and port
+def get_interface_server_association(server_ip, server_port):
+    with open("interface_server_associations", mode="r") as file:
+        for line in file:
+            parts = line.split(":")
+            if server_ip == parts[1] and server_port == parts[2]:
+                return int(parts[0])
+    return 999999
+
 
 class launch(Resource):
     def post(self):
         req = request.data.decode("utf-8")
         req = json.loads(req)
-        ip_range=req["ip_range"]
-        net_interface=req["net_interface"]
-        
-        ##########LOGIC#########
-        #WireGuard installation
+        ip_range = req["ip_range"]
+        net_interface = req["net_interface"]
+        port = req["port"]
+
+        # WireGuard installation
         os.system("sudo add-apt-repository ppa:wireguard/wireguard")
         os.system("sudo apt-get update -y")
         os.system("sudo apt-get install -y wireguard-dkms wireguard-tools linux-headers-$(uname -r)")
-        
-        #Generate public/private key pairs and store them 
+
+        # Generate public/private key pairs and store them
         os.system("Umask 077")
         os.system("wg genkey | tee private_key | wg pubkey > public_key")
-        
-	
-        private_key=get_private_key()
-	
-        #Generate server configuration
-        config=open("/etc/wireguard/wg0.conf","w")
+
+        private_key = get_private_key()
+
+        # Generate server configuration
+        config = open("/etc/wireguard/wg0.conf", "w")
         config.write("[Interface]\n")
-        config.write("Address = "+ip_range+"\n")
-        config.write("SaveConfig = "+True+"\n")
-        config.write("ListenPort = "+51820+"\n")
-        config.write("PrivateKey ="+private_key+"\n")
-        config.write("PostUp = "+"iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE"+"\n")
-        config.write("PostDown = "+"iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE"+"\n")
+        config.write("Address = " + ip_range + "\n")
+        config.write("SaveConfig = " + str(True) + "\n")
+        config.write("ListenPort = " + str(port) + "\n")
+        config.write("PrivateKey =" + private_key + "\n")
+        config.write(
+            "PostUp = " + "iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE" + "\n")
+        config.write(
+            "PostDown = " + "iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE" + "\n")
         config.write("\n")
         config.close()
 
+        # Store interface generated
         set_n_gateway(0)
 
-        #Server rules forwarding
+        # Server rules forwarding
         os.system("sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT")
         os.system("sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT")
         os.system("sudo iptables -A INPUT -p udp -m udp --dport 51820 -m conntrack --ctstate NEW -j ACCEPT")
-        os.system("sudo iptables -A INPUT -s %s -p tcp -m tcp -m conntrack --ctstate NEW -j ACCEPT"%ip_range)
-        os.system("sudo iptables -A INPUT -s %s -p tcp -m udp -m conntrack --ctstate NEW -j ACCEPT"%ip_range)
+        os.system("sudo iptables -A INPUT -s %s -p tcp -m tcp -m conntrack --ctstate NEW -j ACCEPT" % ip_range)
+        os.system("sudo iptables -A INPUT -s %s -p tcp -m udp -m conntrack --ctstate NEW -j ACCEPT" % ip_range)
         os.system("sudo iptables -A FORWARD -i wg0 -o wg0 -m conntrack --ctstate NEW -j ACCEPT")
-        os.system("sudo iptables -t nat -A POSTROUTING -o %s -j MASQUERADE"%net_interface)
+        os.system("sudo iptables -t nat -A POSTROUTING -o %s -j MASQUERADE" % net_interface)
         os.system("sudo apt-get install -y iptables-persistent")
         os.system("sudo systemctl enable netfilter-persistent")
         os.system("sudo netfilter-persistent save")
 
-        file=open("/etc/sysctl.conf","a")
+        file = open("/etc/sysctl.conf", "a")
         file.write("net.ipv4.ip_forward=1\n")
         file.close()
         os.system("sudo sysctl -p")
 
+
 class get_configuration(Resource):
     def get(self):
-        with open ("/etc/wireguard/wg0.conf", "r") as confi:
+        with open("/etc/wireguard/wg0.conf", "r") as confi:
             for line in confi:
                 if "Address =" in line:
-                    ip_range=line.split("= ")[2]
+                    ip_range = line.split("= ")[2]
 
-        #DID is also considered, we need to think on the simulated DLT in order to store these information.
-        data={
-            "did":"dummy_DID",
-            "public_key " : get_public_key(),
-            "address" : ip_range
+        # DID is also considered, we need to think on the simulated DLT in order to store these information.
+        data = {
+            "did": "dummy_DID",
+            "public_key ": get_public_key(),
+            "address": ip_range
         }
-        return json.dump(data)
+        return json.dumps(data)
+
 
 class add_client(Resource):
     def post(self):
         req = request.data.decode("utf-8")
         req = json.loads(req)
-        client_public_key=req["client_public_key"]
-        
-        ##########LOGIC#########
-        asigned_ip=get_next_IP_available()
-        config=open("/etc/wireguard/wg0.conf","a")
+        client_public_key = req["client_public_key"]
+
+        assigned_ip = get_next_IP_available()
+        config = open("/etc/wireguard/wg0.conf", "a")
         config.write("[Peer]\n")
-        config.write("PublicKey = "+client_public_key+"\n")
-        config.write("AllowedIPs = "+asigned_ip+"/32\n")
+        config.write("PublicKey = " + client_public_key + "\n")
+        config.write("AllowedIPs = " + assigned_ip + "/32\n")
         config.write("\n")
         config.close()
-        
-        server_public_key=get_public_key()
-        res={"assigned_ip":asigned_ip,"server_public_key":server_public_key}
-        
-        #Ver como evitar reinicio interfaz    
+
+        server_public_key = get_public_key()
+        res = {"assigned_ip": assigned_ip, "server_public_key": server_public_key}
+
+        # See how to evade interface reboot
         os.system("sudo wg-quick down wg0 && sudo wg-quick up wg0")
-        
+
         return res
-        
+
+
 class remove_client(Resource):
     def post(self):
         req = request.data.decode("utf-8")
         req = json.loads(req)
-        client_public_key=req["client_public_key"]
-        
-        ##########LOGIC#########
-        with open("/etc/wireguard/wg0.conf") as myFile:
+        client_public_key = req["client_public_key"]
+
+        config_line=-100
+        ip_vpn = ""
+        with open("/etc/wireguard/wg0.conf","r") as myFile:
             for num, line in enumerate(myFile, 1):
                 if client_public_key in line:
-                   print ('found at line:', num)
+                    config_line = num
+                if num == config_line+1:
+                    ip_vpn = line.split(" = ")[1]
+                    ip_vpn = ip_vpn.split("/")[0]
 
-        return 200
-        
+        if config_line != -100 and ip_vpn != "":
+            os.system("sudo sed -i '"+str(config_line-1)+"'")
+            os.system("sudo sed -i '"+str(config_line)+"'")
+            os.system("sudo sed -i '"+str(config_line+1)+"'")
+
+            liberate_free_ip(ip_vpn)
+
+            # See how to evade interface reboot
+            os.system("sudo wg-quick down wg0 && sudo wg-quick up wg0")
+
+            return 200
+
+
 class connect_to_VPN(Resource):
     def post(self):
         req = request.data.decode("utf-8")
         req = json.loads(req)
-        ip_address_server=req["ip_address_server"]
-        port_server=req["port_server"]
-        
-        client_public_key=get_public_key()
-        
-        req = {"client_public_key":client_public_key}
-        res = requests.post("http://"+ip_address_server+":"+port_server+'/add_client',data=json.dumps(req).encode("utf-8"))
-        res = json.loads(res.text)
-        assigned_ip=res["assigned_ip"]
-        server_public_key=res["server_public_key"]
-        
-        n_gate = get_n_gateway()
-        n_gate = n_gate+1
+        ip_address_server = req["ip_address_server"]
+        port_server = req["port_server"]
 
-        client_private_key=get_private_key()
-        
-        config = open("/etc/wireguard/wg"+str(n_gate)+".conf","w")
+        client_public_key = get_public_key()
+
+        req = {"client_public_key": client_public_key}
+        res = requests.post("http://" + ip_address_server + ":" + port_server + '/add_client',
+                            data=json.dumps(req).encode("utf-8"))
+        res = json.loads(res.text)
+        assigned_ip = res["assigned_ip"]
+        server_public_key = res["server_public_key"]
+
+        n_gate = get_n_gateway()
+        n_gate = n_gate + 1
+
+        client_private_key = get_private_key()
+
+        config = open("/etc/wireguard/wg" + str(n_gate) + ".conf", "w")
         config.write("[Interface]\n")
-        config.write("Address = "+assigned_ip+"/32\n")
-        config.write("PrivateKey = "+client_private_key+"\n")
+        config.write("Address = " + assigned_ip + "/32\n")
+        config.write("PrivateKey = " + client_private_key + "\n")
         config.write("DNS = 8.8.8.8\n\n")
         config.write("[Peer]\n")
-        config.write("PublicKey = "+server_public_key+"\n")
-        config.write("Endpoint = "+ip_address_server+":"+port_server+"\n")
+        config.write("PublicKey = " + server_public_key + "\n")
+        config.write("Endpoint = " + ip_address_server + ":" + port_server + "\n")
         config.write("AllowedIPs = 0.0.0.0/0\n")
         config.write("\n")
         config.close()
 
         set_n_gateway(n_gate)
 
-        store_interface_server_association(n_gate,ip_address_server,port_server)
-        os.system("sudo wg-quick up wg"+str(n_gate))
-        
+        store_interface_server_association(n_gate, ip_address_server, port_server)
+        os.system("sudo wg-quick up wg" + str(n_gate))
+
         return 200
 
+
 class disconnect_to_VPN(Resource):
-    def post(self):    
+    def post(self):
         req = request.data.decode("utf-8")
         req = json.loads(req)
         ip_address_server = req["ip_address_server"]
         port_server = req["port_server"]
-        
-        n_gate = get_interface_server_association(ip_address_server,port_server)
-        
-        client_public_key=get_public_key()
-        
-        req = {"client_public_key":client_public_key}
-        res = requests.post("http://"+ip_address_server+":"+port_server+'/remove_client',data=json.dumps(req).encode("utf-8"))
-        
+
+        n_gate = get_interface_server_association(ip_address_server, port_server)
+
+        client_public_key = get_public_key()
+
+        req = {"client_public_key": client_public_key}
+        res = requests.post("http://" + ip_address_server + ":" + port_server + '/remove_client',
+                            data=json.dumps(req).encode("utf-8"))
+
         if int(res.text) == 200:
-            os.system("sudo wg-quick down wg"+n_gate)
-            os.system("rm /etc/wireguard/wg"+n_gate+".conf")
-        
+            os.system("sudo wg-quick down wg" + str(n_gate))
+            os.system("rm /etc/wireguard/wg" + str(n_gate) + ".conf")
+
         return 200
-        
+
 
 def launch_server_REST():
     api.add_resource(launch, '/launch/')
@@ -236,5 +267,4 @@ def launch_server_REST():
 
 if __name__ == "__main__":
     launch_server_REST()
-
 

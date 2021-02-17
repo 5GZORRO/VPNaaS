@@ -52,7 +52,9 @@ class launch(Resource):
         net_interface=req["net_interface"]
         
         ##########LOGIC#########
-    
+        
+        #Generate public/private key pairs and store them 
+        
 
 class get_configuration(Resource):
     def get(self):

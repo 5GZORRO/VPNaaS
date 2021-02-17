@@ -43,6 +43,10 @@ paths:
         description: "Network interface to be used to forward VPN traffic."
         required: true
         type: "string"
+      - name: "port"
+        description: "Network port where set the VPN listening for incomming connections (server port)."
+        required: true
+        type: "integer"
       responses:
         200:
           description: "Successful operation."

@@ -67,13 +67,17 @@ class launch(Resource):
         #Generate public/private key pairs and store them 
         os.system("Umask 077")
         os.system("wg genkey | tee private_key | wg pubkey > public_key")
-
+        
+	
+	private_key=get_private_key()
+	
         #Generate server configuration
         config=open("/etc/wireguard/wg0.conf","w")
         config.write("[Interface]\n")
         config.write("Address = "+ip_range+"\n")
         config.write("SaveConfig = "+True+"\n")
         config.write("ListenPort = "+51820+"\n")
+	config.write("PrivateKey ="+private_key+"\n")
         config.write("PostUp = "+"iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE"+"\n")
         config.write("PostDown = "+"iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE"+"\n")
         config.write("\n")
@@ -90,6 +94,11 @@ class launch(Resource):
         os.system("sudo apt-get install iptables-persistent")
         os.system("sudo systemctl enable netfilter-persistent")
         os.system("sudo netfilter-persistent save")
+	
+	file=open("/etc/sysctl.conf","a")
+	file.write("net.ipv4.ip_forward=1\n")
+	file.close()
+	os.system("sudo sysctl -p")
 
 class get_configuration(Resource):
     def get(self):

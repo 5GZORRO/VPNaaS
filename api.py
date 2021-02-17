@@ -5,21 +5,28 @@ import os
 import platform
 import json
 import time
+import requests
 
 app = Flask(__name__)
 api = Api(app)
 
 #Get own public key curve25519
 def get_public_key():
-    public_key=""
     ##########LOGIC#########
+    file=open("public_key", mode="r")
+    public_key=file.read()
+    file.close()
+
     return public_key
     
     
 #Get own private key curve25519
 def get_private_key():
-    private_key=""
     ##########LOGIC#########
+    file=open("private_key", mode="r")
+    private_key=file.read()
+    file.close()
+
     return private_key
     
     
@@ -52,14 +59,51 @@ class launch(Resource):
         net_interface=req["net_interface"]
         
         ##########LOGIC#########
+        #WireGuard installation
+        os.system("add-apt-repository ppa:wireguard/wireguard")
+        os.system("apt-get update")
+        os.system("apt-get install wireguard-dkms wireguard-tools linux-headers-$(uname -r)")
         
         #Generate public/private key pairs and store them 
-        
+        os.system("Umask 077")
+        os.system("wg genkey | tee private_key | wg pubkey > public_key")
+
+        #Generate server configuration
+        config=open("/etc/wireguard/wg0.conf","w")
+        config.write("[Interface]\n")
+        config.write("Address = "+ip_range+"\n")
+        config.write("SaveConfig = "+True+"\n")
+        config.write("ListenPort = "+51820+"\n")
+        config.write("PostUp = "+"iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE"+"\n")
+        config.write("PostDown = "+"iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE"+"\n")
+        config.write("\n")
+        config.close()
+
+        #Server rules forwarding
+        os.system("sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT")
+        os.system("sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT")
+        os.system("sudo iptables -A INPUT -p udp -m udp --dport 51820 -m conntrack --ctstate NEW -j ACCEPT")
+        os.system("sudo iptables -A INPUT -s %s -p tcp -m tcp -m conntrack --ctstate NEW -j ACCEPT"%ip_range)
+        os.system("sudo iptables -A INPUT -s %s -p tcp -m udp -m conntrack --ctstate NEW -j ACCEPT"%ip_range)
+        os.system("sudo iptables -A FORWARD -i wg0 -o wg0 -m conntrack --ctstate NEW -j ACCEPT")
+        os.system("sudo iptables -t nat -A POSTROUTING -o %s -j MASQUERADE"%net_interface)
+        os.system("sudo apt-get install iptables-persistent")
+        os.system("sudo systemctl enable netfilter-persistent")
+        os.system("sudo netfilter-persistent save")
 
 class get_configuration(Resource):
     def get(self):
-    
-    return ""
+        with open ("/etc/wireguard/wg0.conf", rt) as confi:
+            for line in confi:
+                if "Address =" in line:
+                    ip_range=line.split("= ")[2]
+
+        #DID is also considered, we need to think on the simulated DLT in order to store these information.
+        data={
+            "public_key " : get_public_key(),
+            "address" : ip_range
+        }
+        return json.dump(data)
 
 class add_client(Resource):
     def post(self):
@@ -94,7 +138,7 @@ class remove_client(Resource):
         with open("/etc/wireguard/wg0.conf") as myFile:
             for num, line in enumerate(myFile, 1):
                 if client_public_key in line:
-                   print 'found at line:', num
+                   print ('found at line:', num)
 
         return 200
         

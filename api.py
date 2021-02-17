@@ -32,15 +32,24 @@ def get_private_key():
     
 #When acting as server, get next IP available for clients in wg0.conf
 def get_next_IP_available():
+    ip=""
+    return ip
+
 
 #Returns the number, in order, of the gateway to be connected.
 #n in added in one per gateway connected to as a client.
 def get_n_gateway():
-    #Read current n (number of gateways configured as server)
-    #Set current n to n+1
-    #Return n
+    file = open("n_gateway", mode="r")
+    n_gateway = int(file.read())
+    file.close()
+    return n_gateway
 
-#Stores n_gate with the server ip and port to be consulted when deleting 
+def set_n_gateway(n):
+    file = open("n_gateway", mode="w")
+    file.write(n)
+    file.close()
+
+#Stores n_gate with the server ip and port to be consulted when deleting
 #the connection.
 def store_interface_server_association(n_gate,server_ip,server_port):
     data={server_ip:{server_port:n_gate}}
@@ -69,7 +78,7 @@ class launch(Resource):
         os.system("wg genkey | tee private_key | wg pubkey > public_key")
         
 	
-	private_key=get_private_key()
+        private_key=get_private_key()
 	
         #Generate server configuration
         config=open("/etc/wireguard/wg0.conf","w")
@@ -77,11 +86,13 @@ class launch(Resource):
         config.write("Address = "+ip_range+"\n")
         config.write("SaveConfig = "+True+"\n")
         config.write("ListenPort = "+51820+"\n")
-	config.write("PrivateKey ="+private_key+"\n")
+        config.write("PrivateKey ="+private_key+"\n")
         config.write("PostUp = "+"iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE"+"\n")
         config.write("PostDown = "+"iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o "+net_interface+" -j MASQUERADE"+"\n")
         config.write("\n")
         config.close()
+
+        set_n_gateway(0)
 
         #Server rules forwarding
         os.system("sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT")
@@ -94,21 +105,22 @@ class launch(Resource):
         os.system("sudo apt-get install -y iptables-persistent")
         os.system("sudo systemctl enable netfilter-persistent")
         os.system("sudo netfilter-persistent save")
-	
-	file=open("/etc/sysctl.conf","a")
-	file.write("net.ipv4.ip_forward=1\n")
-	file.close()
-	os.system("sudo sysctl -p")
+
+        file=open("/etc/sysctl.conf","a")
+        file.write("net.ipv4.ip_forward=1\n")
+        file.close()
+        os.system("sudo sysctl -p")
 
 class get_configuration(Resource):
     def get(self):
-        with open ("/etc/wireguard/wg0.conf", rt) as confi:
+        with open ("/etc/wireguard/wg0.conf", "r") as confi:
             for line in confi:
                 if "Address =" in line:
                     ip_range=line.split("= ")[2]
 
         #DID is also considered, we need to think on the simulated DLT in order to store these information.
         data={
+            "did":"dummy_DID",
             "public_key " : get_public_key(),
             "address" : ip_range
         }
@@ -160,18 +172,18 @@ class connect_to_VPN(Resource):
         
         client_public_key=get_public_key()
         
-        req= {"client_public_key":client_public_key}
-        res=requests.post("http://"+ip_address_server:port_server+'/add_client',data=json.dumps(req).encode("utf-8"))
-        res=json.loads(res.text)
+        req = {"client_public_key":client_public_key}
+        res = requests.post("http://"+ip_address_server+":"+port_server+'/add_client',data=json.dumps(req).encode("utf-8"))
+        res = json.loads(res.text)
         assigned_ip=res["assigned_ip"]
         server_public_key=res["server_public_key"]
         
-        n_gate=get_n_gateway()
-        ##########LOGIC#########
-        
+        n_gate = get_n_gateway()
+        n_gate = n_gate+1
+
         client_private_key=get_private_key()
         
-        config=open("/etc/wireguard/wg"+n_gate+".conf","w")
+        config = open("/etc/wireguard/wg"+str(n_gate)+".conf","w")
         config.write("[Interface]\n")
         config.write("Address = "+assigned_ip+"/32\n")
         config.write("PrivateKey = "+client_private_key+"\n")
@@ -182,27 +194,29 @@ class connect_to_VPN(Resource):
         config.write("AllowedIPs = 0.0.0.0/0\n")
         config.write("\n")
         config.close()
-        
+
+        set_n_gateway(n_gate)
+
         store_interface_server_association(n_gate,ip_address_server,port_server)
-        os.system("sudo wg-quick up wg"+n_gate)
+        os.system("sudo wg-quick up wg"+str(n_gate))
         
         return 200
-        
+
 class disconnect_to_VPN(Resource):
     def post(self):    
         req = request.data.decode("utf-8")
         req = json.loads(req)
-        ip_address_server=req["ip_address_server"]
-        port_server=req["port_server"]
+        ip_address_server = req["ip_address_server"]
+        port_server = req["port_server"]
         
-        n_gate=get_interface_server_association(ip_address_server,port_server)
+        n_gate = get_interface_server_association(ip_address_server,port_server)
         
         client_public_key=get_public_key()
         
-        req= {"client_public_key":client_public_key}
-        res=requests.post("http://"+ip_address_server:port_server+'/remove_client',data=json.dumps(req).encode("utf-8"))
+        req = {"client_public_key":client_public_key}
+        res = requests.post("http://"+ip_address_server+":"+port_server+'/remove_client',data=json.dumps(req).encode("utf-8"))
         
-        int(res.text)==200:
+        if int(res.text) == 200:
             os.system("sudo wg-quick down wg"+n_gate)
             os.system("rm /etc/wireguard/wg"+n_gate+".conf")
         
@@ -210,15 +224,17 @@ class disconnect_to_VPN(Resource):
         
 
 def launch_server_REST():
-	api.add_resource(launch, '/launch/')
-	api.add_resource(get_configuration, '/get_configuration')
-	api.add_resource(add_client, '/add_client')
-	api.add_resource(remove_client, '/remove_client')
-	api.add_resource(connect_to_VPN, '/connect_to_VPN')
-	api.add_resource(disconnect_to_VPN, '/disconnect_to_VPN')
-	http_server = WSGIServer(('0.0.0.0', 5002), app)
-	http_server.serve_forever()
+    api.add_resource(launch, '/launch/')
+    api.add_resource(get_configuration, '/get_configuration')
+    api.add_resource(add_client, '/add_client')
+    api.add_resource(remove_client, '/remove_client')
+    api.add_resource(connect_to_VPN, '/connect_to_VPN')
+    api.add_resource(disconnect_to_VPN, '/disconnect_to_VPN')
+    http_server = WSGIServer(('0.0.0.0', 5002), app)
+    http_server.serve_forever()
+
 
 if __name__ == "__main__":
     launch_server_REST()
-    
+
+

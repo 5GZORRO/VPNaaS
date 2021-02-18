@@ -4,7 +4,7 @@ from gevent.pywsgi import WSGIServer
 import os
 import json
 import requests
-
+import sys
 
 app = Flask(__name__)
 api = Api(app)
@@ -26,6 +26,16 @@ def get_private_key():
 
     return private_key
 
+def get_vpn_port():
+    file = open("vpn_port", mode="r")
+    vpn_port = int(file.read())
+    file.close()
+    return vpn_port
+
+def set_vpn_port(n_port):
+    file = open("vpn_port", mode="w")
+    file.write(n_port)
+    file.close()
 
 # When acting as server, get next IP available for clients in wg0.conf
 def get_next_IP_available():
@@ -147,6 +157,9 @@ class launch(Resource):
         config.write("\n")
         config.close()
 
+        # Store VPN port
+        set_vpn_port(port)
+
         # Store interface generated
         set_n_gateway(0)
         file=open("ip_management","w")
@@ -202,7 +215,8 @@ class add_client(Resource):
         config.close()
 
         server_public_key = get_public_key()
-        res = {"assigned_ip": assigned_ip, "server_public_key": server_public_key}
+        vpn_port= get_vpn_port()
+        res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
 
         # See how to evade interface reboot
         os.system("sudo wg-quick down wg0 && sudo wg-quick up wg0")
@@ -254,6 +268,7 @@ class connect_to_VPN(Resource):
         res = json.loads(res.text)
         assigned_ip = res["assigned_ip"]
         server_public_key = res["server_public_key"]
+        vpn_port = res["vpn_port"]
 
         n_gate = get_n_gateway()
         n_gate = n_gate + 1
@@ -267,7 +282,7 @@ class connect_to_VPN(Resource):
         config.write("DNS = 8.8.8.8\n\n")
         config.write("[Peer]\n")
         config.write("PublicKey = " + server_public_key + "\n")
-        config.write("Endpoint = " + ip_address_server + ":" + port_server + "\n")
+        config.write("Endpoint = " + ip_address_server + ":" + vpn_port + "\n")
         config.write("AllowedIPs = 0.0.0.0/0\n")
         config.write("\n")
         config.close()
@@ -302,17 +317,22 @@ class disconnect_to_VPN(Resource):
         return 200
 
 
-def launch_server_REST():
+def launch_server_REST(port):
     api.add_resource(launch, '/launch/')
     api.add_resource(get_configuration, '/get_configuration')
     api.add_resource(add_client, '/add_client')
     api.add_resource(remove_client, '/remove_client')
     api.add_resource(connect_to_VPN, '/connect_to_VPN')
     api.add_resource(disconnect_to_VPN, '/disconnect_to_VPN')
-    http_server = WSGIServer(('0.0.0.0', 5002), app)
+    http_server = WSGIServer(('0.0.0.0', port), app)
     http_server.serve_forever()
 
 
 if __name__ == "__main__":
-    launch_server_REST()
+    if len(sys.argv)!=2:
+        print("Usage: python3 app_api.py [port]")
+    else:
+        port=int(sys.argv[2])
+        launch_server_REST(port)
+
 

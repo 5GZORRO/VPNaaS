@@ -333,7 +333,7 @@ if __name__ == "__main__":
     if len(sys.argv)!=2:
         print("Usage: python3 app_api.py [port]")
     else:
-        port=int(sys.argv[2])
+        port=int(sys.argv[1])
         launch_server_REST(port)
 
 

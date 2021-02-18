@@ -28,10 +28,10 @@ def get_private_key():
 
 # When acting as server, get next IP available for clients in wg0.conf
 def get_next_IP_available():
-    min1=1
-    min2=1
-    min3=1
-    min4=1
+    min1 = 1
+    min2 = 1
+    min3 = 1
+    min4 = 1
     
     file = open("ip_management", "r")
     for line in file:
@@ -73,7 +73,7 @@ def get_next_IP_available():
 
 def liberate_free_ip(ip_vpn):
     file = open("ip_management","r")
-    line_ip=0
+    line_ip = 0
     for num, line in enumerate(file, 1):
         if ip_vpn in line:
             line_ip = num
@@ -138,7 +138,7 @@ class launch(Resource):
         config.write("Address = " + ip_range + "\n")
         config.write("SaveConfig = " + str(True) + "\n")
         config.write("ListenPort = " + str(port) + "\n")
-        config.write("PrivateKey =" + private_key + "\n")
+        config.write("PrivateKey = " + private_key + "\n")
         config.write(
             "PostUp = " + "iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE" + "\n")
         config.write(
@@ -177,9 +177,9 @@ class get_configuration(Resource):
                 if "Address =" in line:
                     ip_range = line.split("= ")[2]
 
-        # DID is also considered, we need to think on the simulated DLT in order to store these information.
+        # DID dummy considered, we need to think on the simulated DLT in order to store these information.
         data = {
-            "did": "dummy_DID",
+            "did": "did:5gzorro:dummy12345",
             "public_key ": get_public_key(),
             "address": ip_range
         }

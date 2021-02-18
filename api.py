@@ -5,6 +5,7 @@ import os
 import json
 import requests
 
+
 app = Flask(__name__)
 api = Api(app)
 
@@ -180,7 +181,7 @@ class get_configuration(Resource):
         # DID dummy considered, we need to think on the simulated DLT in order to store these information.
         data = {
             "did": "did:5gzorro:dummy12345",
-            "public_key ": get_public_key(),
+            "public_key": get_public_key(),
             "address": ip_range
         }
         return json.dumps(data)

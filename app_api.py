@@ -195,7 +195,8 @@ class get_configuration(Resource):
         data = {
             "did": "did:5gzorro:dummy12345",
             "public_key": get_public_key(),
-            "address": ip_range
+            "IP_range": ip_range,
+            "vpn_port":get_vpn_port()
         }
         return json.dumps(data)
 

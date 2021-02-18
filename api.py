@@ -28,12 +28,56 @@ def get_private_key():
 
 # When acting as server, get next IP available for clients in wg0.conf
 def get_next_IP_available():
-    ip = ""
-    return ip
+    min1=1
+    min2=1
+    min3=1
+    min4=1
+    
+    file = open("ip_management", "r")
+    for line in file:
+        b = line.split(".")
+        b1 = int(b[0])
+        b2 = int(b[1])
+        b3 = int(b[2])
+        b4 = int(b[3])
+        if b1 > min1:
+            min1 = b1
+            min2 = 1
+            min3 = 1
+            min4 = 1
+        if b2 > min2:
+            min2 = b2
+            min3 = 1
+            min4 = 1
+        if b3 > min3:
+            min3 = b3
+            min4 = 1
+        if b4 > min4:
+            min4 = b4
+    file.close()
+    
+    # Case of last IP in range (.255), new subrange. Else, assigned ip is last IP + 1
+    if min4 == 255:
+        min3 = min3+1
+        min4 = 1
+    else:
+        min4 = min4+1
+    ip = str(min1)+"."+str(min2)+"."+str(min3)+"."+min(min4)
 
+    # Save assigned IP as in usage
+    file = open("ip_management", "a")
+    file.write(ip+"\n")
+    file.close()
+    return ip
+    
 
 def liberate_free_ip(ip_vpn):
-    lib = ""
+    file = open("ip_management","r")
+    line_ip=0
+    for num, line in enumerate(file, 1):
+        if ip_vpn in line:
+            line_ip = num
+    os.system("sudo sed -i '"+str(line_ip+1)+"d' ip_management")
 
 
 # Returns the number, in order, of the gateway to be connected.
@@ -104,6 +148,9 @@ class launch(Resource):
 
         # Store interface generated
         set_n_gateway(0)
+        file=open("ip_management","w")
+        file.write(ip_range.split("/")[0])
+        file.close()
 
         # Server rules forwarding
         os.system("sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT")
@@ -170,8 +217,8 @@ class remove_client(Resource):
 
         config_line=-100
         ip_vpn = ""
-        with open("/etc/wireguard/wg0.conf","r") as myFile:
-            for num, line in enumerate(myFile, 1):
+        with open("/etc/wireguard/wg0.conf","r") as file:
+            for num, line in enumerate(file, 1):
                 if client_public_key in line:
                     config_line = num
                 if num == config_line+1:
@@ -179,9 +226,9 @@ class remove_client(Resource):
                     ip_vpn = ip_vpn.split("/")[0]
 
         if config_line != -100 and ip_vpn != "":
-            os.system("sudo sed -i '"+str(config_line-1)+"'")
-            os.system("sudo sed -i '"+str(config_line)+"'")
-            os.system("sudo sed -i '"+str(config_line+1)+"'")
+            os.system("sudo sed -i '"+str(config_line-1)+"d' /etc/wireguard/wg0.conf")
+            os.system("sudo sed -i '"+str(config_line)+"d' /etc/wireguard/wg0.conf")
+            os.system("sudo sed -i '"+str(config_line+1)+"d' /etc/wireguard/wg0.conf")
 
             liberate_free_ip(ip_vpn)
 

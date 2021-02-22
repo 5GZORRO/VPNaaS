@@ -102,7 +102,7 @@ def get_n_gateway():
 
 def set_n_gateway(n):
     file = open("n_gateway", mode="w")
-    file.write(n)
+    file.write(str(n))
     file.close()
 
 
@@ -319,7 +319,7 @@ class disconnect_to_VPN(Resource):
 
 
 def launch_server_REST(port):
-    api.add_resource(launch, '/launch/')
+    api.add_resource(launch, '/launch')
     api.add_resource(get_configuration, '/get_configuration')
     api.add_resource(add_client, '/add_client')
     api.add_resource(remove_client, '/remove_client')

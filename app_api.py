@@ -267,7 +267,7 @@ class connect_to_VPN(Resource):
 
         req = {"client_public_key": client_public_key}
         headers = {"Content-Type" : "application/json"}
-        res = requests.post("http://" + ip_address_server + ":" + port_server + "/add_client",
+        res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + "/add_client",
                             data=json.dumps(req).encode("utf-8"), headers=headers, timeout=10)
         res = json.loads(res.text)
         assigned_ip = res["assigned_ip"]
@@ -311,7 +311,7 @@ class disconnect_to_VPN(Resource):
         client_public_key = get_public_key()
 
         req = {"client_public_key": client_public_key}
-        res = requests.post("http://" + ip_address_server + ":" + port_server + '/remove_client',
+        res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + '/remove_client',
                             data=json.dumps(req).encode("utf-8"))
 
         if int(res.text) == 200:

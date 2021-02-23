@@ -149,7 +149,7 @@ class launch(Resource):
         config = open("/etc/wireguard/wg0.conf", "w")
         config.write("[Interface]\n")
         config.write("Address = " + ip_range + "\n")
-        config.write("SaveConfig = " + str(True) + "\n")
+        config.write("SaveConfig = " + str(False) + "\n")
         config.write("ListenPort = " + str(port) + "\n")
         config.write("PrivateKey = " + private_key + "\n")
         config.write(

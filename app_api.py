@@ -14,6 +14,7 @@ api = Api(app)
 def get_public_key():
     file = open("public_key", mode="r")
     public_key = file.read()
+    public_key = public_key[:-1]
     file.close()
     return public_key
 
@@ -22,6 +23,7 @@ def get_public_key():
 def get_private_key():
     file = open("private_key", mode="r")
     private_key = file.read()
+    private_key = private_key[:-1]
     file.close()
 
     return private_key

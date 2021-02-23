@@ -246,9 +246,9 @@ class remove_client(Resource):
                     ip_vpn = ip_vpn.split("/")[0]
 
         if config_line != -100 and ip_vpn != "":
-            os.system("sudo sed -i '"+str(config_line-1)+"d' /etc/wireguard/wg0.conf")
-            os.system("sudo sed -i '"+str(config_line)+"d' /etc/wireguard/wg0.conf")
             os.system("sudo sed -i '"+str(config_line+1)+"d' /etc/wireguard/wg0.conf")
+            os.system("sudo sed -i '"+str(config_line)+"d' /etc/wireguard/wg0.conf")
+            os.system("sudo sed -i '"+str(config_line-1)+"d' /etc/wireguard/wg0.conf")
 
             liberate_free_ip(ip_vpn)
 

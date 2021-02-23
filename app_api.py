@@ -156,7 +156,7 @@ class launch(Resource):
             "PostUp = " + "iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE" + "\n")
         config.write(
             "PostDown = " + "iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o " + net_interface + " -j MASQUERADE" + "\n")
-        config.write("\n")
+        config.write("\n\n")
         config.close()
 
         os.system("sudo wg-quick up wg0")
@@ -214,7 +214,7 @@ class add_client(Resource):
         assigned_ip = get_next_IP_available()
         config = open("/etc/wireguard/wg0.conf", "a")
         config.write("[Peer]\n")
-        config.write("PublicKey = " + client_public_key)
+        config.write("PublicKey = " + client_public_key+"\n")
         config.write("AllowedIPs = " + assigned_ip + "/32\n")
         config.write("\n")
         config.close()

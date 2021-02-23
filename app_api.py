@@ -138,7 +138,7 @@ class launch(Resource):
         os.system("sudo apt-get install -y wireguard-dkms wireguard-tools linux-headers-$(uname -r)")
 
         # Generate public/private key pairs and store them
-        os.system("Umask 077")
+        os.system("umask 077")
         os.system("wg genkey | tee private_key | wg pubkey > public_key")
 
         private_key = get_private_key()
@@ -157,6 +157,9 @@ class launch(Resource):
         config.write("\n")
         config.close()
 
+        os.system("sudo wg-quick up wg0")
+        os.system("sudo systemctl enable wg-quick@wg0.service")
+        
         # Store VPN port
         set_vpn_port(port)
 

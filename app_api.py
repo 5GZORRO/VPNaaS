@@ -159,7 +159,7 @@ class launch(Resource):
 
         os.system("sudo wg-quick up wg0")
         os.system("sudo systemctl enable wg-quick@wg0.service")
-        
+
         # Store VPN port
         set_vpn_port(port)
 
@@ -225,7 +225,7 @@ class add_client(Resource):
         # See how to evade interface reboot
         os.system("sudo wg-quick down wg0 && sudo wg-quick up wg0")
 
-        return res
+        return json.dumps(res)
 
 
 class remove_client(Resource):

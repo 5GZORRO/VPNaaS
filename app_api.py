@@ -135,7 +135,7 @@ class launch(Resource):
         # WireGuard installation
         os.system("sudo add-apt-repository ppa:wireguard/wireguard")
         os.system("sudo apt-get update -y")
-        os.system("sudo apt-get install -y wireguard-dkms wireguard-tools linux-headers-$(uname -r)")
+        os.system("sudo apt-get install -y wireguard-dkms wireguard-tools linux-headers-$(uname -r) openresolv")
 
         # Generate public/private key pairs and store them
         os.system("umask 077")

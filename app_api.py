@@ -41,9 +41,9 @@ def set_vpn_port(n_port):
 
 # When acting as server, get next IP available for clients in wg0.conf
 def get_next_IP_available():
-    min1 = 1
-    min2 = 1
-    min3 = 1
+    min1 = 0
+    min2 = 0
+    min3 = 0
     min4 = 1
     
     file = open("ip_management", "r")
@@ -55,12 +55,12 @@ def get_next_IP_available():
         b4 = int(b[3])
         if b1 > min1:
             min1 = b1
-            min2 = 1
-            min3 = 1
+            min2 = 0
+            min3 = 0
             min4 = 1
         if b2 > min2:
             min2 = b2
-            min3 = 1
+            min3 = 0
             min4 = 1
         if b3 > min3:
             min3 = b3

@@ -159,7 +159,6 @@ class launch(Resource):
 
         os.system("sudo wg-quick up wg0")
         os.system("sudo systemctl enable wg-quick@wg0.service")
-
         # Store VPN port
         set_vpn_port(port)
 
@@ -225,7 +224,7 @@ class add_client(Resource):
         # See how to evade interface reboot
         os.system("sudo wg-quick down wg0 && sudo wg-quick up wg0")
 
-        return json.dumps(res)
+        return res
 
 
 class remove_client(Resource):
@@ -287,7 +286,7 @@ class connect_to_VPN(Resource):
         config.write("DNS = 8.8.8.8\n\n")
         config.write("[Peer]\n")
         config.write("PublicKey = " + server_public_key + "\n")
-        config.write("Endpoint = " + ip_address_server + ":" + vpn_port + "\n")
+        config.write("Endpoint = " + ip_address_server + ":" + str(vpn_port) + "\n")
         config.write("AllowedIPs = 0.0.0.0/0\n")
         config.write("\n")
         config.close()

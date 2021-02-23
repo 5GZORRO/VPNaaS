@@ -264,6 +264,7 @@ class connect_to_VPN(Resource):
         req = json.loads(req)
         ip_address_server = req["ip_address_server"]
         port_server = req["port_server"]
+        IP_range_to_redirect = req["IP_range_to_redirect"]
 
         client_public_key = get_public_key()
 
@@ -289,7 +290,7 @@ class connect_to_VPN(Resource):
         config.write("[Peer]\n")
         config.write("PublicKey = " + server_public_key + "\n")
         config.write("Endpoint = " + ip_address_server + ":" + str(vpn_port) + "\n")
-        config.write("AllowedIPs = 0.0.0.0/0\n")
+        config.write("AllowedIPs = "+ IP_range_to_redirect + "\n")
         config.write("\n")
         config.close()
 

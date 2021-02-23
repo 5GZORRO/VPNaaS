@@ -316,7 +316,7 @@ class disconnect_to_VPN(Resource):
         res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + '/remove_client',
                             data=json.dumps(req).encode("utf-8"))
 
-        if int(res.text) == 200:
+        if res.status_code == 200:
             os.system("sudo wg-quick down wg" + str(n_gate))
             os.system("rm /etc/wireguard/wg" + str(n_gate) + ".conf")
 

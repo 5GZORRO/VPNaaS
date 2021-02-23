@@ -73,7 +73,7 @@ def get_next_IP_available():
         min4 = 1
     else:
         min4 = min4+1
-    ip = str(min1)+"."+str(min2)+"."+str(min3)+"."+min(min4)
+    ip = str(min1)+"."+str(min2)+"."+str(min3)+"."+str(min4)
 
     # Save assigned IP as in usage
     file = open("ip_management", "a")
@@ -163,7 +163,7 @@ class launch(Resource):
         # Store interface generated
         set_n_gateway(0)
         file=open("ip_management","w")
-        file.write(ip_range.split("/")[0])
+        file.write(ip_range.split("/")[0]+"\n")
         file.close()
 
         # Server rules forwarding
@@ -210,7 +210,7 @@ class add_client(Resource):
         assigned_ip = get_next_IP_available()
         config = open("/etc/wireguard/wg0.conf", "a")
         config.write("[Peer]\n")
-        config.write("PublicKey = " + client_public_key + "\n")
+        config.write("PublicKey = " + client_public_key)
         config.write("AllowedIPs = " + assigned_ip + "/32\n")
         config.write("\n")
         config.close()
@@ -264,8 +264,9 @@ class connect_to_VPN(Resource):
         client_public_key = get_public_key()
 
         req = {"client_public_key": client_public_key}
-        res = requests.post("http://" + ip_address_server + ":" + port_server + '/add_client',
-                            data=json.dumps(req).encode("utf-8"))
+        headers = {"Content-Type" : "application/json"}
+        res = requests.post("http://" + ip_address_server + ":" + port_server + "/add_client",
+                            data=json.dumps(req).encode("utf-8"), headers=headers, timeout=10)
         res = json.loads(res.text)
         assigned_ip = res["assigned_ip"]
         server_public_key = res["server_public_key"]

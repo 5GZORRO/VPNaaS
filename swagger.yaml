@@ -139,6 +139,10 @@ paths:
         description: "Specific port where VPN server will be available"
         required: true
         type: "integer"
+      - name: "IP_range_to_redirect"
+        description: "Range of IP directions that will be redirected to that VPN peer. Use 0.0.0.0/0 to redirect all traffic."
+        required: true
+        type: "string"
       responses:
         200:
           description: "Successful operation"

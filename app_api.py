@@ -171,7 +171,7 @@ class launch(Resource):
         os.system("sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT")
         os.system("sudo iptables -A INPUT -p udp -m udp --dport 51820 -m conntrack --ctstate NEW -j ACCEPT")
         os.system("sudo iptables -A INPUT -s %s -p tcp -m tcp -m conntrack --ctstate NEW -j ACCEPT" % ip_range)
-        os.system("sudo iptables -A INPUT -s %s -p tcp -m udp -m conntrack --ctstate NEW -j ACCEPT" % ip_range)
+        os.system("sudo iptables -A INPUT -s %s -p udp -m udp -m conntrack --ctstate NEW -j ACCEPT" % ip_range)
         os.system("sudo iptables -A FORWARD -i wg0 -o wg0 -m conntrack --ctstate NEW -j ACCEPT")
         os.system("sudo iptables -t nat -A POSTROUTING -o %s -j MASQUERADE" % net_interface)
         os.system("sudo apt-get install -y iptables-persistent")

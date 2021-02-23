@@ -189,7 +189,7 @@ class get_configuration(Resource):
         with open("/etc/wireguard/wg0.conf", "r") as confi:
             for line in confi:
                 if "Address =" in line:
-                    ip_range = line.split("= ")[2]
+                    ip_range = line.split("= ")[1]
 
         # DID dummy considered, we need to think on the simulated DLT in order to store these information.
         data = {

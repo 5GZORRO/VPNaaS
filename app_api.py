@@ -323,6 +323,15 @@ class disconnect_to_VPN(Resource):
             os.system("sudo wg-quick down wg" + str(n_gate))
             os.system("rm /etc/wireguard/wg" + str(n_gate) + ".conf")
 
+            config_line = -100
+            with open("interface_server_associations","r") as file:
+                for num, line in enumerate(file,1):
+                    if str(n_gate) in line.split(":")[0]:
+                        config_line = num
+
+            if config_line != -100:
+                os.system("sudo sed -i '"+str(config_line)+"d' interface_server_associations")
+
         return 200
 
 

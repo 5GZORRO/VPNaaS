@@ -121,6 +121,8 @@ def get_interface_server_association(server_ip, server_port):
     with open("interface_server_associations", mode="r") as file:
         for line in file:
             parts = line.split(":")
+            server_port = str(server_port).split()
+            parts[2] = parts[2].split()
             if server_ip == parts[1] and server_port == parts[2]:
                 return int(parts[0])
     return 999999

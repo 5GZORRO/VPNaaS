@@ -336,13 +336,14 @@ class disconnect_to_VPN(Resource):
 
 
 def launch_server_REST(port):
+    #api.app.run(ssl_context=('cert.pem','key.pem'))
     api.add_resource(launch, '/launch')
     api.add_resource(get_configuration, '/get_configuration')
     api.add_resource(add_client, '/add_client')
     api.add_resource(remove_client, '/remove_client')
     api.add_resource(connect_to_VPN, '/connect_to_VPN')
     api.add_resource(disconnect_to_VPN, '/disconnect_to_VPN')
-    http_server = WSGIServer(('0.0.0.0', port), app)
+    http_server = WSGIServer(('0.0.0.0', port), app, )
     http_server.serve_forever()
 
 

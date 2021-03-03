@@ -20,3 +20,12 @@ The inter-domain security establishment repo encompasses an adaptation of WireGu
 ## Inter-domain REST API
 
 * The current methods and information are available [here](https://5gzorro.github.io/inter-secure-channel-setup/) 
+
+## Requirements
+
+This project is written in Python, and consequently, Python3 is required to deploy its funcionalities.
+In addition, multiple libraries such as Flask, Flask Restful, Gevent, and Werkzeug are needeed in order to execute the gateway. These dependencies can be installed through the file requirements.txt
+
+```python
+pip install -r requirements.txt
+``  

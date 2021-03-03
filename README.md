@@ -27,7 +27,7 @@ The inter-domain security establishment repo encompasses an adaptation of WireGu
 
 ```
 git clone https://github.com/5GZORRO/inter-secure-channel-setup.git
-``
+```
 
 #### Step 2 - Install requirements
 

@@ -41,7 +41,7 @@ def set_vpn_port(n_port):
     file.close()
 
 # When acting as server, get next IP available for clients in wg0.conf
-def get_next_IP_available():
+"""def get_next_IP_available():
     min1 = 0
     min2 = 0
     min3 = 0
@@ -82,31 +82,39 @@ def get_next_IP_available():
     file = open("ip_management", "a")
     file.write(ip+"\n")
     file.close()
-    return ip
+    return ip"""
 
-def get_next_IP_available_2(IP_range_to_redirect):
-    #ip_range = '0.0.0.0/0'
-    #with open("/etc/wireguard/wg0.conf", "r") as confi:
-        #for line in confi:
-            #if "Address =" in line:
-                #ip_range = line.split("= ")[1]
-    network = IPv4Network(IP_range_to_redirect)
+#This method gets next IP available for clients in wg0.conf, but reusing previous IPs that were released
+def get_next_IP_available():
+    ip_range = '0.0.0.0/0'
+    with open("/etc/wireguard/wg0.conf", "r") as confi:
+        for line in confi:
+            if "Address =" in line:
+                ip_range = line.split("= ")[1]
+
+    ip_range = ip_range.rstrip()
+
+    if ip_range.split("/")[1] == "24":
+        ip = ip_range.split(".")
+        ip_range = ip[0]+"."+ip[1]+"."+ip[2]+".0/24"
+
+    network = IPv4Network(ip_range)
     IP_reserved = []
+
     file = open("ip_management", "r")
     for line in file:
-        IP_reserved.append(line)
+        IP_reserved.append(line.rstrip())
     file.close()
 
     first_IP_available = (host for host in network.hosts() if str(host) not in IP_reserved)
 
-    print(first_IP_available)
-    print(next(first_IP_available))
+    assigned_ip = next(first_IP_available)
 
     # Save assigned IP as in usage
     file = open("ip_management", "a")
-    file.write(first_IP_available+"\n")
+    file.write(str(assigned_ip)+"\n")
     file.close()
-    return first_IP_available
+    return str(assigned_ip)
     
 
 def liberate_free_ip(ip_vpn):
@@ -239,7 +247,7 @@ class add_client(Resource):
         client_public_key = req["client_public_key"]
         IP_range_to_redirect = req["IP_range_to_redirect"]
 
-        assigned_ip = get_next_IP_available_2(IP_range_to_redirect)
+        assigned_ip = get_next_IP_available()
         config = open("/etc/wireguard/wg0.conf", "a")
         config.write("[Peer]\n")
         config.write("PublicKey = " + client_public_key+"\n")

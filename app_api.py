@@ -245,7 +245,6 @@ class add_client(Resource):
         req = request.data.decode("utf-8")
         req = json.loads(req)
         client_public_key = req["client_public_key"]
-        IP_range_to_redirect = req["IP_range_to_redirect"]
 
         assigned_ip = get_next_IP_available()
         config = open("/etc/wireguard/wg0.conf", "a")

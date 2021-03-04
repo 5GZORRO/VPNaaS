@@ -59,7 +59,7 @@ curl -i -X POST -H "Content-Type: application/" -d "{\"ip_range\":\"192.168.1.1/
 From gateway that will act as a _client_ in this instance, we should forward a POST request in order to connect to _server_ gateway. In this case, we need to provide a JSON with _ip_address_server_, _port_server_, and _IP_range_to_redirect_. An example could be:
 
 ```
-curl -i -X POST -H "Content-Type: application/" -d "{\"ip_range_server\":\"10.0.2.5\",\"port\":\"5002\",\"IP_range_to_direct\":\"192.168.2.1/24\"}" http://10.0.3.4:5002/connect_to_VPN
+curl -i -X POST -H "Content-Type: application/" -d "{\"ip_range_server\":\"10.0.2.5\",\"port\":\"5002\",\"IP_range_to_direct\":\"0.0.0.0/0\"}" http://10.0.3.4:5002/connect_to_VPN
 ```
 
 In this moment, we wold have the VPN connection between two gateways activated.

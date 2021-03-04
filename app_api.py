@@ -313,14 +313,14 @@ class connect_to_VPN(Resource):
         server_public_key = res["server_public_key"]
         vpn_port = res["vpn_port"]
 
-        n_gate = #get_n_gateway()
+        #n_gate = get_n_gateway()
         n_gate = 99999
 
         interfaces_reserved = []
         try:
-            file = open("interface_server_associations", "r")
-            for line in file:
-                interfaces_reserved.append(line.split(":")[0])
+            with open("interface_server_associations", "r") as file:
+                for line in file:
+                    interfaces_reserved.append(str(line.split(":")[0]))
                 for x in range(1, 9):
                     if str(x) not in interfaces_reserved:
                         n_gate = x

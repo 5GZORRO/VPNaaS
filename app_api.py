@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
 from gevent.pywsgi import WSGIServer
+from ipaddress import IPv4Network
 import os
 import json
 import requests
@@ -82,6 +83,30 @@ def get_next_IP_available():
     file.write(ip+"\n")
     file.close()
     return ip
+
+def get_next_IP_available_2(IP_range_to_redirect):
+    #ip_range = '0.0.0.0/0'
+    #with open("/etc/wireguard/wg0.conf", "r") as confi:
+        #for line in confi:
+            #if "Address =" in line:
+                #ip_range = line.split("= ")[1]
+    network = IPv4Network(IP_range_to_redirect)
+    IP_reserved = []
+    file = open("ip_management", "r")
+    for line in file:
+        IP_reserved.append(line)
+    file.close()
+
+    first_IP_available = (host for host in network.hosts() if str(host) not in IP_reserved)
+
+    print(first_IP_available)
+    print(next(first_IP_available))
+
+    # Save assigned IP as in usage
+    file = open("ip_management", "a")
+    file.write(first_IP_available+"\n")
+    file.close()
+    return first_IP_available
     
 
 def liberate_free_ip(ip_vpn):
@@ -212,8 +237,9 @@ class add_client(Resource):
         req = request.data.decode("utf-8")
         req = json.loads(req)
         client_public_key = req["client_public_key"]
+        IP_range_to_redirect = req["IP_range_to_redirect"]
 
-        assigned_ip = get_next_IP_available()
+        assigned_ip = get_next_IP_available_2(IP_range_to_redirect)
         config = open("/etc/wireguard/wg0.conf", "a")
         config.write("[Peer]\n")
         config.write("PublicKey = " + client_public_key+"\n")

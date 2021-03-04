@@ -95,6 +95,12 @@ def get_next_IP_available_2():
     if ip_range.split("/")[1] == "24":
         ip = ip_range.split(".")
         ip_range = ip[0]+"."+ip[1]+"."+ip[2]+".0/24"
+    elif ip_range.split("/")[1] == "16":
+        ip = ip_range.split(".")
+        ip_range = ip[0]+"."+ip[1]+".0.0/16"
+    elif ip_range.split("/")[1] == "8":
+        ip = ip_range.split(".")
+        ip_range = ip[0]+"."+"0.0.0/8"
 
     network = IPv4Network(ip_range)
     IP_reserved = []

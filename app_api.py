@@ -84,8 +84,7 @@ def set_vpn_port(n_port):
     file.close()
     return ip"""
 
-#This method gets next IP available for clients in wg0.conf, but reusing previous IPs that were released
-def get_next_IP_available():
+def get_next_IP_available_2():
     ip_range = '0.0.0.0/0'
     with open("/etc/wireguard/wg0.conf", "r") as confi:
         for line in confi:
@@ -93,10 +92,11 @@ def get_next_IP_available():
                 ip_range = line.split("= ")[1]
 
     ip_range = ip_range.rstrip()
-
+    print(ip_range)
     if ip_range.split("/")[1] == "24":
         ip = ip_range.split(".")
         ip_range = ip[0]+"."+ip[1]+"."+ip[2]+".0/24"
+        print(ip_range)
 
     network = IPv4Network(ip_range)
     IP_reserved = []
@@ -105,17 +105,20 @@ def get_next_IP_available():
     for line in file:
         IP_reserved.append(line.rstrip())
     file.close()
+    print(IP_reserved)
 
     first_IP_available = (host for host in network.hosts() if str(host) not in IP_reserved)
 
+    #print(first_IP_available)
     assigned_ip = next(first_IP_available)
+    print(str(assigned_ip))
 
     # Save assigned IP as in usage
     file = open("ip_management", "a")
     file.write(str(assigned_ip)+"\n")
     file.close()
     return str(assigned_ip)
-    
+
 
 def liberate_free_ip(ip_vpn):
     file = open("ip_management","r")
@@ -245,8 +248,9 @@ class add_client(Resource):
         req = request.data.decode("utf-8")
         req = json.loads(req)
         client_public_key = req["client_public_key"]
+        #IP_range_to_redirect = req["IP_range_to_redirect"]
 
-        assigned_ip = get_next_IP_available()
+        assigned_ip = get_next_IP_available_2()
         config = open("/etc/wireguard/wg0.conf", "a")
         config.write("[Peer]\n")
         config.write("PublicKey = " + client_public_key+"\n")
@@ -294,7 +298,6 @@ class remove_client(Resource):
 
 
 class connect_to_VPN(Resource):
-    @property
     def post(self):
         req = request.data.decode("utf-8")
         req = json.loads(req)
@@ -314,17 +317,20 @@ class connect_to_VPN(Resource):
         vpn_port = res["vpn_port"]
 
         #n_gate = get_n_gateway()
+        #n_gate = n_gate + 1
         n_gate = 99999
-
         interfaces_reserved = []
+
         try:
             with open("interface_server_associations", "r") as file:
                 for line in file:
                     interfaces_reserved.append(str(line.split(":")[0]))
-                for x in range(1, 9):
+                for x in range(1,10):
                     if str(x) not in interfaces_reserved:
                         n_gate = x
-            file.close()
+                        print(n_gate)
+                        print(interfaces_reserved)
+                        break
         except IOError:
             n_gate = 1
 

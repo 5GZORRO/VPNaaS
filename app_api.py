@@ -92,11 +92,9 @@ def get_next_IP_available_2():
                 ip_range = line.split("= ")[1]
 
     ip_range = ip_range.rstrip()
-    print(ip_range)
     if ip_range.split("/")[1] == "24":
         ip = ip_range.split(".")
         ip_range = ip[0]+"."+ip[1]+"."+ip[2]+".0/24"
-        print(ip_range)
 
     network = IPv4Network(ip_range)
     IP_reserved = []
@@ -105,13 +103,10 @@ def get_next_IP_available_2():
     for line in file:
         IP_reserved.append(line.rstrip())
     file.close()
-    print(IP_reserved)
 
     first_IP_available = (host for host in network.hosts() if str(host) not in IP_reserved)
 
-    #print(first_IP_available)
     assigned_ip = next(first_IP_available)
-    print(str(assigned_ip))
 
     # Save assigned IP as in usage
     file = open("ip_management", "a")
@@ -328,8 +323,6 @@ class connect_to_VPN(Resource):
                 for x in range(1,10):
                     if str(x) not in interfaces_reserved:
                         n_gate = x
-                        print(n_gate)
-                        print(interfaces_reserved)
                         break
         except IOError:
             n_gate = 1

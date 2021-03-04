@@ -294,6 +294,7 @@ class remove_client(Resource):
 
 
 class connect_to_VPN(Resource):
+    @property
     def post(self):
         req = request.data.decode("utf-8")
         req = json.loads(req)
@@ -312,8 +313,20 @@ class connect_to_VPN(Resource):
         server_public_key = res["server_public_key"]
         vpn_port = res["vpn_port"]
 
-        n_gate = get_n_gateway()
-        n_gate = n_gate + 1
+        n_gate = #get_n_gateway()
+        n_gate = 99999
+
+        interfaces_reserved = []
+        try:
+            file = open("interface_server_associations", "r")
+            for line in file:
+                interfaces_reserved.append(line.split(":")[0])
+                for x in range(1, 9):
+                    if str(x) not in interfaces_reserved:
+                        n_gate = x
+            file.close()
+        except IOError:
+            n_gate = 1
 
         client_private_key = get_private_key()
 

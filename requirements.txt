@@ -1,4 +1,4 @@
 flask
 flask_restful
 gevent
-Werkzeug==1.0.1
+Werkzeug

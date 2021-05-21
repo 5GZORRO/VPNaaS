@@ -6,7 +6,9 @@ import os
 import json
 import requests
 import sys
+from gevent import monkey
 
+monkey.patch_all()
 app = Flask(__name__)
 api = Api(app)
 

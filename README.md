@@ -1,7 +1,7 @@
 # Inter-secure-channel-setup
 The inter-domain security establishment repo encompasses an adaptation of WireGuard approach which will allow utilising DIDs and VCs as a mechanism for deriving a symmetric key. Thence, this repo will be supported by others such as the identity and permissions management and DLT.
 
-![alt text](https://github.com/josejmjv/intra-domain-example/blob/main/images/DID_based_on_VPN.png?raw=true)
+![alt text](https://github.com/5GZORRO/inter-secure-channel-setup/blob/main/images/DID_based_on_VPN.png?raw=true)
 
 ## WireGuard VPN
 

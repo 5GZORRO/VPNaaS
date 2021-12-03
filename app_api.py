@@ -6,6 +6,7 @@ import os
 import json
 import requests
 import sys
+import subprocess
 from gevent import monkey
 
 monkey.patch_all()
@@ -21,6 +22,16 @@ def get_public_key():
     file.close()
     return public_key
 
+def get_public_key_from_IdM():
+    #This method will be agnostic to the domains after changing the current end-point of the IdM
+    public_key = requests.get("http://172.28.3.153:6200/authentication/public_key")
+    return public_key
+
+def get_own_IP():
+    command = "ip addr show ens3 | grep \"inet \" | awk \'{print $2}\' | cut -f1 -d\"/\""
+    result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
+    ip = result.stdout.decode('utf-8')
+    return ip
 
 # Get own private key curve25519
 def get_private_key():
@@ -239,7 +250,7 @@ class get_configuration(Resource):
         # DID dummy considered, we need to think on the simulated DLT in order to store these information.
         data = {
             "did": "did:5gzorro:dummy12345",
-            "public_key": get_public_key(),
+            "public_key": get_public_key_from_IdM(),
             "IP_range": ip_range,
             "vpn_port":get_vpn_port()
         }
@@ -261,7 +272,7 @@ class add_client(Resource):
         config.write("\n")
         config.close()
 
-        server_public_key = get_public_key()
+        server_public_key = get_public_key_from_IdM()
         vpn_port= get_vpn_port()
         res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
 
@@ -308,7 +319,7 @@ class connect_to_VPN(Resource):
         port_server = req["port_server"]
         IP_range_to_redirect = req["IP_range_to_redirect"]
 
-        client_public_key = get_public_key()
+        client_public_key = get_public_key_from_IdM()
 
         req = {"client_public_key": client_public_key}
         headers = {"Content-Type" : "application/json"}
@@ -366,7 +377,7 @@ class disconnect_to_VPN(Resource):
 
         n_gate = get_interface_server_association(ip_address_server, port_server)
 
-        client_public_key = get_public_key()
+        client_public_key = get_public_key_from_IdM()
 
         req = {"client_public_key": client_public_key}
         res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + '/remove_client',

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SynopsysCodeSightScanLogSettings">
+    <option name="version" value="1" />
+  </component>
+  <component name="SynopsysCodeSightSettings">
+    <option name="columnStates">
+      <list>
+        <ColumnState>
+          <option name="name" value="Scans" />
+          <option name="width" value="60" />
+        </ColumnState>
+        <ColumnState>
+          <option name="name" value="" />
+          <option name="width" value="35" />
+        </ColumnState>
+        <ColumnState>
+          <option name="name" value="Type" />
+          <option name="width" value="75" />
+        </ColumnState>
+        <ColumnState>
+          <option name="name" value="Location" />
+          <option name="width" value="75" />
+        </ColumnState>
+        <ColumnState>
+          <option name="name" value="First Detected" />
+          <option name="width" value="75" />
+        </ColumnState>
+      </list>
+    </option>
+    <option name="filters">
+      <list>
+        <Filter>
+          <option name="filterType" value="Source" />
+          <option name="filterValue" value="SingleFile" />
+        </Filter>
+      </list>
+    </option>
+    <option name="version" value="2" />
+  </component>
+</project>

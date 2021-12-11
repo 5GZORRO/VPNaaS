@@ -24,7 +24,7 @@ def get_public_key():
 
 def get_public_key_from_IdM():
     #This method will be agnostic to the domains after changing the current end-point of the IdM
-    public_key = requests.get("http://172.28.3.153:6200/authentication/public_key")
+    public_key = requests.get("http://172.28.3.153:6800/authentication/public_key")
     return public_key
 
 def get_own_IP():
@@ -192,9 +192,10 @@ class launch(Resource):
         os.system("sudo apt-get install -y wireguard-dkms wireguard-tools linux-headers-$(uname -r) openresolv")
 
         # Generate public/private key pairs and store them
-        os.system("umask 077")
-        os.system("wg genkey | tee private_key | wg pubkey > public_key")
-
+        #os.system("umask 077")
+        #os.system("wg genkey | tee private_key | wg pubkey > public_key")
+        os.system("cat private_key | wg pubkey > public_key")
+    
         private_key = get_private_key()
 
         # Generate server configuration
@@ -250,7 +251,7 @@ class get_configuration(Resource):
         # DID dummy considered, we need to think on the simulated DLT in order to store these information.
         data = {
             "did": "did:5gzorro:dummy12345",
-            "public_key": get_public_key_from_IdM(),
+            "public_key": get_public_key(),
             "IP_range": ip_range,
             "vpn_port":get_vpn_port()
         }
@@ -272,7 +273,8 @@ class add_client(Resource):
         config.write("\n")
         config.close()
 
-        server_public_key = get_public_key_from_IdM()
+        server_public_key = get_public_key()
+        #server_public_key = requests.get("http://172.28.3.153:6200/authentication/public_key")
         vpn_port= get_vpn_port()
         res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
 
@@ -319,7 +321,7 @@ class connect_to_VPN(Resource):
         port_server = req["port_server"]
         IP_range_to_redirect = req["IP_range_to_redirect"]
 
-        client_public_key = get_public_key_from_IdM()
+        client_public_key = get_public_key()
 
         req = {"client_public_key": client_public_key}
         headers = {"Content-Type" : "application/json"}
@@ -377,7 +379,7 @@ class disconnect_to_VPN(Resource):
 
         n_gate = get_interface_server_association(ip_address_server, port_server)
 
-        client_public_key = get_public_key_from_IdM()
+        client_public_key = get_public_key()
 
         req = {"client_public_key": client_public_key}
         res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + '/remove_client',

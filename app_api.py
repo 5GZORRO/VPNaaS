@@ -8,6 +8,7 @@ import requests
 import sys
 import subprocess
 from gevent import monkey
+from dotenv import load_dotenv
 
 monkey.patch_all()
 app = Flask(__name__)
@@ -185,6 +186,10 @@ class launch(Resource):
         ip_range = req["ip_range"]
         net_interface = req["net_interface"]
         port = req["port"]
+
+        # Take environment variable
+        load_dotenv()
+        secret = os.getenv('KEY')
 
         # WireGuard installation
         os.system("sudo add-apt-repository ppa:wireguard/wireguard")

@@ -197,9 +197,9 @@ class launch(Resource):
         os.system("sudo apt-get install -y wireguard-dkms wireguard-tools linux-headers-$(uname -r) openresolv")
 
         # Generate public/private key pairs and store them
-        #os.system("umask 077")
-        #os.system("wg genkey | tee private_key | wg pubkey > public_key")
-        os.system("cat private_key | wg pubkey > public_key")
+        os.system("umask 077")
+        os.system("wg genkey | tee private_key | wg pubkey > public_key")
+        #os.system("cat private_key | wg pubkey > public_key")
     
         private_key = get_private_key()
 

@@ -3,3 +3,5 @@ flask_restful
 gevent
 Werkzeug
 python-dotenv
+psutils
+requests

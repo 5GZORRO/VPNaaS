@@ -1,0 +1,1 @@
+iptables -F; rm ip_management; rm n_gateway; rm interface_server_associations; rm interface_key_associations; wg-quick down wg0; wg-quick down wg1; wg-quick down wg2; wg-quick down wg3; wg-quick down wg4; wg-quick down wg5; wg-quick down wg6; wg-quick down wg7; wg-quick down wg8; rm /etc/wireguard/wg*

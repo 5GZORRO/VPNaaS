@@ -231,7 +231,6 @@ class launch(Resource):
         #os.system("cat private_key | wg pubkey > public_key")
 
         get_key_pair_from_IdM()
-        print("$$$$$$$ PRIVATE KEY $$$$$", private_key)
         #private_key = get_private_key()
 
         # Generate server configuration
@@ -316,7 +315,6 @@ class add_client(Resource):
 
         #server_public_key = get_public_key()
         server_public_key = public_key
-        print("$$$$ SERVER PUBLIC KEY $$$$$", public_key)
         #server_public_key = requests.get("http://172.28.3.153:6200/authentication/public_key")
         vpn_port= get_vpn_port()
         res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
@@ -372,7 +370,6 @@ class connect_to_VPN(Resource):
         get_key_pair_from_IdM()
 
         client_public_key = public_key
-        print("$$$$ CLIENT PUBLIC KEY $$$$$", public_key)
 
         req = {"client_public_key": client_public_key}
         headers = {"Content-Type" : "application/json"}
@@ -401,7 +398,6 @@ class connect_to_VPN(Resource):
 
         #client_private_key = get_private_key()
         client_private_key = private_key
-        print("$$$$$$$ CLIENT PRIVATE KEY $$$$$", private_key)
 
         config = open("/etc/wireguard/wg" + str(n_gate) + ".conf", "w")
         config.write("[Interface]\n")
@@ -437,7 +433,6 @@ class disconnect_to_VPN(Resource):
 
         #client_public_key = get_public_key()
         client_public_key = get_interface_key_association(n_gate, ip_address_server)
-        print("$$$$$ CLIENT PUBLIC KEY $$$$", public_key)
 
         req = {"client_public_key": client_public_key}
         res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + '/remove_client',

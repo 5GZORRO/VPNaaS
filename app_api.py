@@ -14,6 +14,10 @@ monkey.patch_all()
 app = Flask(__name__)
 api = Api(app)
 
+#Global variables
+public_key = ""
+private_key = ""
+
 
 # Get own public key curve25519
 def get_public_key():
@@ -23,10 +27,15 @@ def get_public_key():
     file.close()
     return public_key
 
-def get_public_key_from_IdM():
+def get_key_pair_from_IdM():
+    global public_key
+    global private_key
+
     #This method will be agnostic to the domains after changing the current end-point of the IdM
-    public_key = requests.get("http://172.28.3.153:6800/authentication/public_key")
-    return public_key
+    req = requests.get("http://172.28.3.153:6200/authentication/operator_key_pair?shared_secret=5gzorroidportalnsmm")
+    req = req.json()
+    public_key = req["public_key"]
+    private_key = req["private_key"]
 
 def get_own_IP():
     command = "ip addr show ens3 | grep \"inet \" | awk \'{print $2}\' | cut -f1 -d\"/\""
@@ -166,6 +175,13 @@ def store_interface_server_association(n_gate, server_ip, server_port):
     file.write(str(n_gate) + ":" + str(server_ip) + ":" + str(server_port) + "\n")
     file.close()
 
+# Stores n_gate with the server_ip and public key to be consulted when deleting
+# the connection.
+def store_interface_key_association(n_gate, server_ip, public_key):
+    file = open("interface_key_associations", mode="a")
+    file.write(str(public_key) + ":" + str(n_gate) + ":" + str(server_ip) + "\n")
+    file.close()
+
 
 # Get the n_gate associated with the requested ip and port
 def get_interface_server_association(server_ip, server_port):
@@ -178,9 +194,22 @@ def get_interface_server_association(server_ip, server_port):
                 return int(parts[0])
     return 999999
 
+# Get the public_key associated with the requested server_ip and port
+def get_interface_key_association(n_gate, server_ip):
+    with open("interface_key_associations", mode="r") as file:
+        for line in file:
+            parts = line.split(":")
+            server_ip = str(server_ip).split()
+            parts[2] = parts[2].split()
+            if n_gate == parts[1] and server_ip == parts[2]:
+                return int(parts[0])
+    return 999999
+
 
 class launch(Resource):
     def post(self):
+        global private_key
+
         req = request.data.decode("utf-8")
         req = json.loads(req)
         ip_range = req["ip_range"]
@@ -198,10 +227,12 @@ class launch(Resource):
 
         # Generate public/private key pairs and store them
         os.system("umask 077")
-        os.system("wg genkey | tee private_key | wg pubkey > public_key")
+        #os.system("wg genkey | tee private_key | wg pubkey > public_key")
         #os.system("cat private_key | wg pubkey > public_key")
-    
-        private_key = get_private_key()
+
+        get_key_pair_from_IdM()
+        print("$$$$$$$ PRIVATE KEY $$$$$", private_key)
+        #private_key = get_private_key()
 
         # Generate server configuration
         config = open("/etc/wireguard/wg0.conf", "w")
@@ -248,6 +279,8 @@ class launch(Resource):
 
 class get_configuration(Resource):
     def get(self):
+        global public_key
+
         with open("/etc/wireguard/wg0.conf", "r") as confi:
             for line in confi:
                 if "Address =" in line:
@@ -256,7 +289,8 @@ class get_configuration(Resource):
         # DID dummy considered, we need to think on the simulated DLT in order to store these information.
         data = {
             "did": "did:5gzorro:dummy12345",
-            "public_key": get_public_key(),
+            #"public_key": get_public_key(),
+            "public_key": public_key,
             "IP_range": ip_range,
             "vpn_port":get_vpn_port()
         }
@@ -265,6 +299,8 @@ class get_configuration(Resource):
 
 class add_client(Resource):
     def post(self):
+        global public_key
+
         req = request.data.decode("utf-8")
         req = json.loads(req)
         client_public_key = req["client_public_key"]
@@ -278,7 +314,9 @@ class add_client(Resource):
         config.write("\n")
         config.close()
 
-        server_public_key = get_public_key()
+        #server_public_key = get_public_key()
+        server_public_key = public_key
+        print("$$$$ SERVER PUBLIC KEY $$$$$", public_key)
         #server_public_key = requests.get("http://172.28.3.153:6200/authentication/public_key")
         vpn_port= get_vpn_port()
         res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
@@ -320,13 +358,21 @@ class remove_client(Resource):
 
 class connect_to_VPN(Resource):
     def post(self):
+        global private_key
+        global public_key
+
         req = request.data.decode("utf-8")
         req = json.loads(req)
         ip_address_server = req["ip_address_server"]
         port_server = req["port_server"]
         IP_range_to_redirect = req["IP_range_to_redirect"]
 
-        client_public_key = get_public_key()
+        #client_public_key = get_public_key()
+        #Each new connection a new key pair should be employed
+        get_key_pair_from_IdM()
+
+        client_public_key = public_key
+        print("$$$$ CLIENT PUBLIC KEY $$$$$", public_key)
 
         req = {"client_public_key": client_public_key}
         headers = {"Content-Type" : "application/json"}
@@ -353,7 +399,9 @@ class connect_to_VPN(Resource):
         except IOError:
             n_gate = 1
 
-        client_private_key = get_private_key()
+        #client_private_key = get_private_key()
+        client_private_key = private_key
+        print("$$$$$$$ CLIENT PRIVATE KEY $$$$$", private_key)
 
         config = open("/etc/wireguard/wg" + str(n_gate) + ".conf", "w")
         config.write("[Interface]\n")
@@ -370,6 +418,7 @@ class connect_to_VPN(Resource):
         set_n_gateway(n_gate)
 
         store_interface_server_association(n_gate, ip_address_server, port_server)
+        store_interface_key_association(n_gate,ip_address_server, client_public_key)
         os.system("sudo wg-quick up wg" + str(n_gate))
 
         return 200
@@ -377,6 +426,8 @@ class connect_to_VPN(Resource):
 
 class disconnect_to_VPN(Resource):
     def post(self):
+        global public_key
+
         req = request.data.decode("utf-8")
         req = json.loads(req)
         ip_address_server = req["ip_address_server"]
@@ -384,7 +435,9 @@ class disconnect_to_VPN(Resource):
 
         n_gate = get_interface_server_association(ip_address_server, port_server)
 
-        client_public_key = get_public_key()
+        #client_public_key = get_public_key()
+        client_public_key = get_interface_key_association(n_gate, ip_address_server)
+        print("$$$$$ CLIENT PUBLIC KEY $$$$", public_key)
 
         req = {"client_public_key": client_public_key}
         res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + '/remove_client',

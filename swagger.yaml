@@ -43,8 +43,8 @@ paths:
     post:
       tags:
       - "Gateway"
-      summary: "Launch Wireguard and install if not installed."
-      description: "This method configures the required dependencies to launch wireguard in the machine."
+      summary: "Launch Wireguard."
+      description: "This method configures wireguard in the machine."
       operationId: "addClient"
       consumes:
       - "application/json"

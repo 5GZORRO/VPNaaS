@@ -231,6 +231,7 @@ class launch(Resource):
         ip_range = req["ip_range"]
         net_interface = req["net_interface"]
         port = req["port"]
+        environment = req["environment"]
 
         # Take environment variable
         load_dotenv()
@@ -238,11 +239,14 @@ class launch(Resource):
 
         # Generate public/private key pairs and store them
         os.system("umask 077")
-        #os.system("wg genkey | tee private_key | wg pubkey > public_key")
-        #os.system("cat private_key | wg pubkey > public_key")
 
-        get_key_pair_from_IdM()
-        #private_key = get_private_key()
+        #Two options to enable NXW's team local tests
+        if environment == "local":
+            os.system("wg genkey | tee private_key | wg pubkey > public_key")
+            #os.system("cat private_key | wg pubkey > public_key")
+            private_key = get_private_key()
+        elif environment == "testbed":
+            get_key_pair_from_IdM()
 
         # Generate server configuration
         config = open("/etc/wireguard/wg0.conf", "w")
@@ -307,8 +311,8 @@ class add_client(Resource):
         req = request.data.decode("utf-8")
         req = json.loads(req)
         client_public_key = req["client_public_key"]
-        #IP_range_to_redirect = req["IP_range_to_redirect"]
         destination_IP_range_to_redirect = req["destination_IP_range_to_redirect"]
+        environment = req["environment"]
 
         assigned_ip = get_next_IP_available_2()
         config = open("/etc/wireguard/wg0.conf", "a")
@@ -318,9 +322,12 @@ class add_client(Resource):
         config.write("\n")
         config.close()
 
-        #server_public_key = get_public_key()
-        server_public_key = public_key
-        #server_public_key = requests.get("http://172.28.3.153:6200/authentication/public_key")
+        #Two options to enable NXW's team local tests
+        if environment == "local":
+            server_public_key = get_public_key()
+        elif environment == "testbed":
+            server_public_key = public_key
+
         vpn_port= get_vpn_port()
         res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
 
@@ -370,14 +377,18 @@ class connect_to_VPN(Resource):
         port_server = req["port_server"]
         IP_range_to_redirect = req["IP_range_to_redirect"]
         destination_IP_range_to_redirect = req["destination_IP_range_to_redirect"]
+        environment = req["environment"]
 
-        #client_public_key = get_public_key()
-        #Each new connection a new key pair should be employed
-        get_key_pair_from_IdM()
+        #Two options to enable NXW's team local tests
+        if environment == "local":
+            client_public_key = get_public_key()
+        elif environment == "testbed":
+            #Each new connection a new key pair should be employed
+            get_key_pair_from_IdM()
+            client_public_key = public_key
 
-        client_public_key = public_key
-
-        req = {"client_public_key": client_public_key, "destination_IP_range_to_redirect": destination_IP_range_to_redirect}
+        req = {"client_public_key": client_public_key, "destination_IP_range_to_redirect": destination_IP_range_to_redirect,
+               "environment": environment}
         headers = {"Content-Type" : "application/json"}
         res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + "/add_client",
                             data=json.dumps(req).encode("utf-8"), headers=headers, timeout=10)
@@ -402,8 +413,11 @@ class connect_to_VPN(Resource):
         except IOError:
             n_gate = 1
 
-        #client_private_key = get_private_key()
-        client_private_key = private_key
+        #Two options to enable NXW's team local tests
+        if environment == "local":
+            client_private_key = get_private_key()
+        elif environment == "testbed":
+            client_private_key = private_key
 
         config = open("/etc/wireguard/wg" + str(n_gate) + ".conf", "w")
         config.write("[Interface]\n")
@@ -436,8 +450,6 @@ class disconnect_to_VPN(Resource):
         port_server = req["port_server"]
 
         n_gate = get_interface_server_association(ip_address_server, port_server)
-
-        #client_public_key = get_public_key()
         client_public_key = get_interface_key_association(n_gate, ip_address_server)
 
         req = {"client_public_key": client_public_key}

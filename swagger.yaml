@@ -108,9 +108,9 @@ paths:
         required: true
         type: "string"
       - name: "destination_IP_range_to_redirect"
-          description: "IP of the VIM to be redirected the network traffic."
-          required: true
-          type: "string"
+        description: "IP of the VIM to be redirected the network traffic."
+        required: true
+        type: "string"
       responses:
         200:
           description: "Successful operation."
@@ -164,9 +164,9 @@ paths:
         required: true
         type: "string"
       - name: "destination_IP_range_to_redirect"
-          description: "IP of the VIM to be redirected the network traffic."
-          required: true
-          type: "string"
+        description: "IP of the VIM to be redirected the network traffic."
+        required: true
+        type: "string"
       responses:
         200:
           description: "Successful operation"

@@ -205,6 +205,22 @@ def get_interface_key_association(n_gate, server_ip):
                 return int(parts[0])
     return 999999
 
+class installation(Resource):
+    def post(self):
+
+        # WireGuard installation
+        os.system("sudo add-apt-repository ppa:wireguard/wireguard")
+        os.system("sudo apt-get update -y")
+        os.system("sudo apt-get install -y wireguard-dkms wireguard-tools linux-headers-$(uname -r) openresolv")
+
+        os.system("sudo apt-get install -y iptables-persistent")
+        os.system("sudo systemctl enable netfilter-persistent")
+
+        file = open("/etc/sysctl.conf", "a")
+        file.write("net.ipv4.ip_forward=1\n")
+        file.close()
+        os.system("sudo sysctl -p")
+
 
 class launch(Resource):
     def post(self):
@@ -219,11 +235,6 @@ class launch(Resource):
         # Take environment variable
         load_dotenv()
         secret = os.getenv('KEY')
-
-        # WireGuard installation
-        os.system("sudo add-apt-repository ppa:wireguard/wireguard")
-        os.system("sudo apt-get update -y")
-        os.system("sudo apt-get install -y wireguard-dkms wireguard-tools linux-headers-$(uname -r) openresolv")
 
         # Generate public/private key pairs and store them
         os.system("umask 077")
@@ -266,14 +277,7 @@ class launch(Resource):
         os.system("sudo iptables -A INPUT -s %s -p udp -m udp -m conntrack --ctstate NEW -j ACCEPT" % ip_range)
         os.system("sudo iptables -A FORWARD -i wg0 -o wg0 -m conntrack --ctstate NEW -j ACCEPT")
         os.system("sudo iptables -t nat -A POSTROUTING -o %s -j MASQUERADE" % net_interface)
-        os.system("sudo apt-get install -y iptables-persistent")
-        os.system("sudo systemctl enable netfilter-persistent")
         os.system("sudo netfilter-persistent save")
-
-        file = open("/etc/sysctl.conf", "a")
-        file.write("net.ipv4.ip_forward=1\n")
-        file.close()
-        os.system("sudo sysctl -p")
 
 
 class get_configuration(Resource):
@@ -304,12 +308,13 @@ class add_client(Resource):
         req = json.loads(req)
         client_public_key = req["client_public_key"]
         #IP_range_to_redirect = req["IP_range_to_redirect"]
+        destination_IP_range_to_redirect = req["destination_IP_range_to_redirect"]
 
         assigned_ip = get_next_IP_available_2()
         config = open("/etc/wireguard/wg0.conf", "a")
         config.write("[Peer]\n")
         config.write("PublicKey = " + client_public_key+"\n")
-        config.write("AllowedIPs = " + assigned_ip + "/32\n")
+        config.write("AllowedIPs = " + assigned_ip + "/32, "+destination_IP_range_to_redirect+"\n")
         config.write("\n")
         config.close()
 
@@ -364,6 +369,7 @@ class connect_to_VPN(Resource):
         ip_address_server = req["ip_address_server"]
         port_server = req["port_server"]
         IP_range_to_redirect = req["IP_range_to_redirect"]
+        destination_IP_range_to_redirect = req["destination_IP_range_to_redirect"]
 
         #client_public_key = get_public_key()
         #Each new connection a new key pair should be employed
@@ -371,7 +377,7 @@ class connect_to_VPN(Resource):
 
         client_public_key = public_key
 
-        req = {"client_public_key": client_public_key}
+        req = {"client_public_key": client_public_key, "destination_IP_range_to_redirect": destination_IP_range_to_redirect}
         headers = {"Content-Type" : "application/json"}
         res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + "/add_client",
                             data=json.dumps(req).encode("utf-8"), headers=headers, timeout=10)
@@ -456,6 +462,7 @@ class disconnect_to_VPN(Resource):
 
 def launch_server_REST(port):
     #api.app.run(ssl_context=('cert.pem','key.pem'))
+    api.add_resource(installation, '/installation')
     api.add_resource(launch, '/launch')
     api.add_resource(get_configuration, '/get_configuration')
     api.add_resource(add_client, '/add_client')

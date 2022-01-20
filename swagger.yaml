@@ -23,6 +23,22 @@ schemes:
 - "https"
 - "http"
 paths:
+  /installation:
+    post:
+      tags:
+        - "Gateway"
+      summary: "Install Wireguard if not installed."
+      description: "This method install the required dependencies to launch wireguard in the machine."
+      operationId: "installation"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "Successful operation."
+        400:
+          description: "Invalid status value."
   /launch:
     post:
       tags:
@@ -91,6 +107,10 @@ paths:
         description: "Public key of the client to be added, in Curve25519 format."
         required: true
         type: "string"
+      - name: "destination_IP_range_to_redirect"
+          description: "IP of the VIM to be redirected the network traffic."
+          required: true
+          type: "string"
       responses:
         200:
           description: "Successful operation."
@@ -143,6 +163,10 @@ paths:
         description: "Range of IP directions that will be redirected to that VPN peer. Use 0.0.0.0/0 to redirect all traffic."
         required: true
         type: "string"
+      - name: "destination_IP_range_to_redirect"
+          description: "IP of the VIM to be redirected the network traffic."
+          required: true
+          type: "string"
       responses:
         200:
           description: "Successful operation"

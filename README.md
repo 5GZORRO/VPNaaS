@@ -57,20 +57,20 @@ curl -i -X POST http://10.0.3.4:5002/installation
 
 #### Step 4 - Launch Wireguard
 
-Next, we should execute the launch method via a POST request. Besides, such request should contain a JSON object with _ip_range_, _network_interface_, and _port_. It should be pointed out that this step should be carried out by both gateways. More details can be acquired [here](https://5gzorro.github.io/inter-secure-channel-setup/) 
+Next, we should execute the launch method via a POST request. Besides, such request should contain a JSON object with _ip_range_, _network_interface_, _port_, and _environment_. The latter parameter can be established to "local", if we are going to perform tests outside of 5GBarcelona/5TONIC testbeds, or "testbed" on the contrary. It should be pointed out that this step should be carried out by both gateways. More details can be acquired [here](https://5gzorro.github.io/inter-secure-channel-setup/) 
 
 An example could be:
 
 ```
-curl -i -X POST -H "Content-Type: application/" -d "{\"ip_range\":\"192.168.1.1/24\",\"net_interface\":\"eth0\",\"port\":\"5003\"}" http://10.0.3.4:5002/launch
+curl -i -X POST -H "Content-Type: application/" -d "{\"ip_range\":\"192.168.1.1/24\",\"net_interface\":\"eth0\",\"port\":\"5003\",\"environment\":\"testbed\"}" http://10.0.3.4:5002/launch
 ```
 
 #### Step 5 - Add a connection to a foreign gateway
 
-From gateway that will act as a _client_ in this instance, we should forward a POST request in order to connect to _server_ gateway. In this case, we need to provide a JSON with _ip_address_server_, _port_server_, _IP_range_to_redirect_ (_wg0_ subnet of the WireGuard server), and _destination_IP_range_to_redirect_ (subnet of the VIM to be achieved). An example could be:
+From gateway that will act as a _client_ in this instance, we should forward a POST request in order to connect to _server_ gateway. In this case, we need to provide a JSON with _ip_address_server_, _port_server_, _IP_range_to_redirect_ (_wg0_ subnet of the WireGuard server), _destination_IP_range_to_redirect_ (subnet of the VIM to be achieved), and _environment_. An example could be:
 
 ```
-curl -i -X POST -H "Content-Type: application/" -d "{\"ip_address_server\":\"10.0.2.5\",\"port_server\":\"5002\",\"IP_range_to_redirect\":\"192.168.2.1/24\",\"destination_IP_range_to_redirect\":\"192.168.160.0/24\"}" http://10.0.3.4:5002/connect_to_VPN
+curl -i -X POST -H "Content-Type: application/" -d "{\"ip_address_server\":\"10.0.2.5\",\"port_server\":\"5002\",\"IP_range_to_redirect\":\"192.168.2.1/24\",\"destination_IP_range_to_redirect\":\"192.168.160.0/24\",\"environment\":\"testbed\"}" http://10.0.3.4:5002/connect_to_VPN
 ```
 
 In this moment, we wold have the VPN connection between two gateways activated.

@@ -63,6 +63,10 @@ paths:
         description: "Network port where set the VPN listening for incomming connections (server port)."
         required: true
         type: "integer"
+      - name: "environment"
+        description: "Testbed or local deployment of this module"
+        required: true
+        type: "string"
       responses:
         200:
           description: "Successful operation."
@@ -109,6 +113,10 @@ paths:
         type: "string"
       - name: "destination_IP_range_to_redirect"
         description: "IP of the VIM to be redirected the network traffic."
+        required: true
+        type: "string"
+      - name: "environment"
+        description: "Testbed or local deployment of this module"
         required: true
         type: "string"
       responses:
@@ -165,6 +173,10 @@ paths:
         type: "string"
       - name: "destination_IP_range_to_redirect"
         description: "IP of the VIM to be redirected the network traffic."
+        required: true
+        type: "string"
+      - name: "environment"
+        description: "Testbed or local deployment of this module"
         required: true
         type: "string"
       responses:

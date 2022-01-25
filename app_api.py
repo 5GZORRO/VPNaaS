@@ -201,8 +201,8 @@ def get_interface_key_association(n_gate, server_ip):
             parts = line.split(":")
             server_ip = str(server_ip).split()
             parts[2] = parts[2].split()
-            if n_gate == parts[1] and server_ip == parts[2]:
-                return int(parts[0])
+            if str(n_gate) == parts[1] and server_ip == parts[2]:
+                return parts[0]
     return 999999
 
 class installation(Resource):

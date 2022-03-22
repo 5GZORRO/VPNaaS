@@ -15,9 +15,12 @@ app = Flask(__name__)
 api = Api(app)
 
 #Global variables
+secret = ""
 public_key = ""
 private_key = ""
-
+timestamp = ""
+DID = ""
+endpoint_IdM = ""
 
 # Get own public key curve25519
 def get_public_key():
@@ -27,13 +30,15 @@ def get_public_key():
     file.close()
     return public_key
 
-def get_key_pair_from_IdM():
+def get_key_pair_from_IdM(secret):
     global public_key
     global private_key
 
     #This method will be agnostic to the domains after changing the current end-point of the IdM
-    req = requests.get("http://172.28.3.153:6200/authentication/operator_key_pair?shared_secret=5gzorroidportalnsmm")
+    header = {"shared-secret": secret}
+    req = requests.get("http://172.28.3.153:6800/authentication/operator_key_pair", headers=header)
     req = req.json()
+    print("JSON: ", req)
     public_key = req["public_key"]
     private_key = req["private_key"]
 
@@ -201,9 +206,30 @@ def get_interface_key_association(n_gate, server_ip):
             parts = line.split(":")
             server_ip = str(server_ip).split()
             parts[2] = parts[2].split()
-            if str(n_gate) == parts[1] and server_ip == parts[2]:
-                return parts[0]
+            if n_gate == parts[1] and server_ip == parts[2]:
+                return int(parts[0])
     return 999999
+
+def get_info_from_NSMM(response):
+    global private_key
+    global public_key
+    global timestamp
+    global DID
+
+    public_key = response["public_key"]
+    private_key = response["private_key"]
+    timestamp = response["timestamp"]
+    DID = response["DID"]
+    
+
+def check_key_pair(data):
+    global secret
+    global endpoint_IdM
+
+    header = {"shared-secret": secret, "Content-Type" : "application/json"}
+    req = requests.post(endpoint_IdM, data=json.dumps(data).encode("utf-8"), headers=header, timeout=10)
+
+    return req
 
 class installation(Resource):
     def post(self):
@@ -225,6 +251,8 @@ class installation(Resource):
 class launch(Resource):
     def post(self):
         global private_key
+        global secret
+        global endpoint_IdM
 
         req = request.data.decode("utf-8")
         req = json.loads(req)
@@ -232,10 +260,12 @@ class launch(Resource):
         net_interface = req["net_interface"]
         port = req["port"]
         environment = req["environment"]
+        endpoint_IdM = req["endpoint_IdM"]
 
         # Take environment variable
         load_dotenv()
         secret = os.getenv('KEY')
+        #endpoint_IdM = "http://172.28.3.153:6800/authentication/operator_key_pair/verify"
 
         # Generate public/private key pairs and store them
         os.system("umask 077")
@@ -246,7 +276,8 @@ class launch(Resource):
             #os.system("cat private_key | wg pubkey > public_key")
             private_key = get_private_key()
         elif environment == "testbed":
-            get_key_pair_from_IdM()
+            #get_key_pair_from_IdM(secret)
+            get_info_from_NSMM(req)
 
         # Generate server configuration
         config = open("/etc/wireguard/wg0.conf", "w")
@@ -307,6 +338,7 @@ class get_configuration(Resource):
 class add_client(Resource):
     def post(self):
         global public_key
+        global endpoint_IdM
 
         req = request.data.decode("utf-8")
         req = json.loads(req)
@@ -314,27 +346,49 @@ class add_client(Resource):
         destination_IP_range_to_redirect = req["destination_IP_range_to_redirect"]
         environment = req["environment"]
 
-        assigned_ip = get_next_IP_available_2()
-        config = open("/etc/wireguard/wg0.conf", "a")
-        config.write("[Peer]\n")
-        config.write("PublicKey = " + client_public_key+"\n")
-        config.write("AllowedIPs = " + assigned_ip + "/32, "+destination_IP_range_to_redirect+"\n")
-        config.write("\n")
-        config.close()
-
+        data = {"did": req["did"], "public_key": req["client_public_key"], "timestamp": req["timestamp"]}
+        
         #Two options to enable NXW's team local tests
-        if environment == "local":
+        if environment == "testbed":
+            verification = check_key_pair(data)
+        
+            if verification.status_code == 200:
+                assigned_ip = get_next_IP_available_2()
+                config = open("/etc/wireguard/wg0.conf", "a")
+                config.write("[Peer]\n")
+                config.write("PublicKey = " + client_public_key+"\n")
+                config.write("AllowedIPs = " + assigned_ip + "/32, "+destination_IP_range_to_redirect+"\n")
+                config.write("\n")
+                config.close()
+
+                server_public_key = public_key
+
+                vpn_port= get_vpn_port()
+                res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
+
+                # See how to evade interface reboot
+                os.system("sudo wg-quick down wg0 && sudo wg-quick up wg0")
+                return res
+            else:
+                print("Incorrect verification",verification, data, endpoint_IdM)
+        elif environment == "local":
+            assigned_ip = get_next_IP_available_2()
+            config = open("/etc/wireguard/wg0.conf", "a")
+            config.write("[Peer]\n")
+            config.write("PublicKey = " + client_public_key+"\n")
+            config.write("AllowedIPs = " + assigned_ip + "/32, "+destination_IP_range_to_redirect+"\n")
+            config.write("\n")
+            config.close()
+
             server_public_key = get_public_key()
-        elif environment == "testbed":
-            server_public_key = public_key
 
-        vpn_port= get_vpn_port()
-        res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
+            vpn_port= get_vpn_port()
+            res = {"assigned_ip": assigned_ip, "vpn_port":vpn_port,  "server_public_key": server_public_key}
 
-        # See how to evade interface reboot
-        os.system("sudo wg-quick down wg0 && sudo wg-quick up wg0")
+            # See how to evade interface reboot
+            os.system("sudo wg-quick down wg0 && sudo wg-quick up wg0")
 
-        return res
+            return res
 
 
 class remove_client(Resource):
@@ -370,6 +424,9 @@ class connect_to_VPN(Resource):
     def post(self):
         global private_key
         global public_key
+        global DID
+        global timestamp
+        global endpoint_IdM
 
         req = request.data.decode("utf-8")
         req = json.loads(req)
@@ -384,11 +441,13 @@ class connect_to_VPN(Resource):
             client_public_key = get_public_key()
         elif environment == "testbed":
             #Each new connection a new key pair should be employed
-            get_key_pair_from_IdM()
+            #get_key_pair_from_IdM()
             client_public_key = public_key
 
+        #req = {"client_public_key": client_public_key, "destination_IP_range_to_redirect": destination_IP_range_to_redirect,
+               #"environment": environment}
         req = {"client_public_key": client_public_key, "destination_IP_range_to_redirect": destination_IP_range_to_redirect,
-               "environment": environment}
+               "environment": environment, "did": DID, "timestamp": timestamp}
         headers = {"Content-Type" : "application/json"}
         res = requests.post("http://" + str(ip_address_server) + ":" + str(port_server) + "/add_client",
                             data=json.dumps(req).encode("utf-8"), headers=headers, timeout=10)

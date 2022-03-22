@@ -67,6 +67,26 @@ paths:
         description: "Testbed or local deployment of this module"
         required: true
         type: "string"
+      - name: "DID"
+        description: "Each establishment will require to generating a DID"
+        required: true
+        type: "string"
+      - name: "public_key"
+        description: "Public key linked to the DID for a particular tunnel establishment"
+        required: true
+        type: "string"
+      - name: "private_key"
+        description: "Private key linked to the DID for a particular tunnel establishment"
+        required: true
+        type: "string"
+      - name: "timestamp"
+        description: "Timestamp key linked to the DID and key pair"
+        required: true
+        type: "integer"
+      - name: "endpoint_IdM"
+        description: "IdM Agent endpoint to verify key pair"
+        required: true
+        type: "string"
       responses:
         200:
           description: "Successful operation."

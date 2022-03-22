@@ -57,12 +57,12 @@ curl -i -X POST http://10.0.3.4:5002/installation
 
 #### Step 4 - Launch Wireguard
 
-Next, we should execute the launch method via a POST request. Besides, such request should contain a JSON object with _ip_range_, _network_interface_, _port_, and _environment_. The latter parameter can be established to "local", if we are going to perform tests outside of 5GBarcelona/5TONIC testbeds, or "testbed" on the contrary. It should be pointed out that this step should be carried out by both gateways. More details can be acquired [here](https://5gzorro.github.io/inter-secure-channel-setup/) 
+Next, we should execute the launch method via a POST request. Besides, such request should contain a JSON object with _ip_range_, _network_interface_, _port_, _environment_, _DID_, _public_key_, _private_key_, _timestamp_, and _endpoint_IdM_. The latter parameter can be established to "local", if we are going to perform tests outside of 5GBarcelona/5TONIC testbeds, or "testbed" on the contrary. It should be pointed out that this step should be carried out by both gateways. More details can be acquired [here](https://5gzorro.github.io/inter-secure-channel-setup/) 
 
 An example could be:
 
 ```
-curl -i -X POST -H "Content-Type: application/" -d "{\"ip_range\":\"192.168.1.1/24\",\"net_interface\":\"eth0\",\"port\":\"5003\",\"environment\":\"testbed\"}" http://10.0.3.4:5002/launch
+curl -i -X POST -H "Content-Type: application/" -d "{\"ip_range\":\"192.168.1.1/24\",\"net_interface\":\"eth0\",\"port\":\"5003\",\"environment\":\"testbed\","DID\":\"RHxxhYFA0y0FFSuE9lPgLV"\,\"public_key\":\"p/Mg8YYnnPeUgUQM6FgKowfkd3Nc/pi926KfGewYUXg=\",\"private_key\":\"jXGkv4Wv1ZNZf3q4EPwhcTVNGGW/kEFfU7AmCdDvcMY=\",\"timestamp\":\"1647972667\",\"endpoint_IdM\":\"http://172.28.3.153:6800/authentication/operator_key_pair/verify\"}" http://10.0.3.4:5002/launch
 ```
 
 #### Step 5 - Add a connection to a foreign gateway

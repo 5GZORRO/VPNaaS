@@ -5,3 +5,4 @@ Werkzeug
 python-dotenv
 psutil
 requests
+PyJWT

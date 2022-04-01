@@ -7,6 +7,7 @@ import json
 import requests
 import sys
 import subprocess
+import jwt
 from gevent import monkey
 from dotenv import load_dotenv
 
@@ -215,7 +216,12 @@ def get_info_from_NSMM(response):
     global public_key
     global timestamp
     global DID
+    
+    # Take environment variable
+    load_dotenv()
+    key = os.getenv('KEY')
 
+    response = jwt.decode(response, key, algorithms="HS256")
     public_key = response["public_key"]
     private_key = response["private_key"]
     timestamp = response["timestamp"]
@@ -264,7 +270,7 @@ class launch(Resource):
 
         # Take environment variable
         load_dotenv()
-        secret = os.getenv('KEY')
+        secret = os.getenv('SHARED_SECRET')
         #endpoint_IdM = "http://172.28.3.153:6800/authentication/operator_key_pair/verify"
 
         # Generate public/private key pairs and store them

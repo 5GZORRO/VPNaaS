@@ -283,7 +283,7 @@ class launch(Resource):
             private_key = get_private_key()
         elif environment == "testbed":
             #get_key_pair_from_IdM(secret)
-            get_info_from_NSMM(req)
+            get_info_from_NSMM(req["IdM_payload"])
 
         # Generate server configuration
         config = open("/etc/wireguard/wg0.conf", "w")

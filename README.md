@@ -2,6 +2,7 @@
 
 ## Introduction
 The VPNaaS repo encompasses an adaptation of WireGuard approach which will allow utilising DIDs and key pairs as a mechanism for deriving a symmetric key. This module aims at providing the capabilities for establishing secure and trusted connections between different domains in the 5GZORRO environment, guaranteeing privacy and integrity but without sacrificing performance. It has an important role when it comes to performing network slicing and integrating resources located at a third-party infrastructure. 
+
 ![alt text](https://github.com/5GZORRO/inter-secure-channel-setup/blob/main/images/DID_based_on_VPN_v1.png?raw=true)
 
 ## Pre-requisites

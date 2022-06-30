@@ -1,10 +1,10 @@
 ---
 swagger: "2.0"
 info:
-  description: "This is the swager server for the inter-domain security server.  This software is developed\
+  description: "This is the swager server for the on-demand VPN-as-a-Service process.  This software is developed\
     \ under EU H2020 [http://5gzorro.eu](5GZORRO) project."
   version: "1.0"
-  title: "Inter-domain security establishment"
+  title: "VPN-as-a-Service"
   #termsOfService: "http://swagger.io/terms/"
   contact:
     email: "josemaria.jorquera@um.es"
